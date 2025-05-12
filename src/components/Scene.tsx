@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Environment, useTexture } from '@react-three/drei';
-import { Vector3, RepeatWrapping, Raycaster, Vector2 } from 'three';
+import { Vector3, RepeatWrapping, Raycaster, Vector2, Mesh, Fog, MeshStandardMaterial } from 'three';
 import { Tombstone, TombstoneProps } from './Tombstone';
 import { useIsMobile } from '../hooks/use-mobile';
 
@@ -39,7 +39,7 @@ export const Scene = ({ tombstones = [], onRightClick, onTombstoneClick }: Scene
 
 const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps) => {
   const { camera, gl } = useThree();
-  const groundRef = useRef<THREE.Mesh>(null);
+  const groundRef = useRef<Mesh>(null);
   const raycaster = new Raycaster();
   const mouse = new Vector2();
   const isMobile = useIsMobile();
@@ -55,7 +55,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
     const haze = Math.sin(time) * 0.01 + 0.1;
     fogColor.addScalar(haze);
     if (gl.scene.fog) {
-      (gl.scene.fog as any).color.set(
+      (gl.scene.fog as Fog).color.set(
         `rgb(${Math.floor(fogColor.x * 255)},${Math.floor(fogColor.y * 255)},${Math.floor(fogColor.z * 255)})`
       );
     }

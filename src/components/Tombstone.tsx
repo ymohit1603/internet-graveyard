@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
-import { MeshStandardMaterial } from 'three';
+import { MeshStandardMaterial, Mesh } from 'three';
 
 export type TombstoneProps = {
   id?: string;
@@ -21,7 +21,7 @@ export type TombstoneProps = {
 };
 
 export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const [hovered, setHover] = useState(false);
   
   // Load stone texture
