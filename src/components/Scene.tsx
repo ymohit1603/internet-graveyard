@@ -49,7 +49,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
   const [textureLoaded, setTextureLoaded] = useState(false);
   const [textureError, setTextureError] = useState(false);
   
-  // Load texture properly - need to fix how we pass the callbacks
+  // Load texture properly with proper dependency array
   const grassTexture = useMemo(() => {
     try {
       if (!textureLoaded && !textureError) {
@@ -70,19 +70,15 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
     }
   }, [textureLoaded, textureError]);
 
-  // Create a dynamic fallback texture using the base64 string if needed
-  const fallbackTexture = useMemo(() => {
+  // Create a dynamic fallback texture using a simple color instead
+  const fallbackMaterial = useMemo(() => {
     if (textureError || !grassTexture) {
-      try {
-        const texture = useTexture('/textures/grass.jpg');
-        if (texture) {
-          texture.repeat.set(20, 20);
-          texture.wrapS = texture.wrapT = RepeatWrapping;
-          return texture;
-        }
-      } catch (e) {
-        console.warn("Fallback texture also failed:", e);
-      }
+      const material = new MeshStandardMaterial({
+        color: "#1f2025",
+        roughness: 0.9,
+        metalness: 0.1
+      });
+      return material;
     }
     return null;
   }, [textureError, grassTexture]);
@@ -165,12 +161,20 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
         onPointerDown={handlePlaceTombstone}
       >
         <planeGeometry args={[100, 100]} />
-        <meshStandardMaterial 
-          map={fallbackTexture || grassTexture || null}
-          color="#1f2025"
-          roughness={0.9}
-          metalness={0.1}
-        />
+        {grassTexture ? (
+          <meshStandardMaterial 
+            map={grassTexture}
+            roughness={0.9}
+            metalness={0.1}
+            color="#1f2025"
+          />
+        ) : (
+          <meshStandardMaterial 
+            color="#1f2025"
+            roughness={0.9}
+            metalness={0.1}
+          />
+        )}
       </mesh>
       
       {/* Render all tombstones */}
@@ -184,4 +188,3 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
     </>
   );
 };
-

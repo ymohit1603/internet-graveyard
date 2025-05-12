@@ -27,35 +27,29 @@ export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
   const [textureLoaded, setTextureLoaded] = useState(false);
   const [textureError, setTextureError] = useState(false);
   
-  // Load stone texture properly
+  // Attempt to load stone texture with proper dependency array
   const stoneTexture = useMemo(() => {
     try {
-      if (!textureLoaded && !textureError) {
-        const texture = useTexture('/textures/stone.jpg');
-        setTextureLoaded(true);
-        return texture;
-      }
-      return null;
+      const texture = useTexture('/textures/stone.jpg');
+      setTextureLoaded(true);
+      return texture;
     } catch (error) {
       console.warn('Failed to load stone texture:', error);
       setTextureError(true);
       return null;
     }
-  }, [textureLoaded, textureError]);
+  }, []);
   
-  // Create a dynamic fallback texture if needed
-  const fallbackTexture = useMemo(() => {
-    if (textureError || !stoneTexture) {
-      try {
-        const texture = useTexture('/textures/stone.jpg');
-        return texture;
-      } catch (e) {
-        console.warn("Fallback texture also failed:", e);
-        return null;
-      }
-    }
-    return null;
-  }, [textureError, stoneTexture]);
+  // Simple fallback material
+  const fallbackMaterial = useMemo(() => {
+    return new MeshStandardMaterial({
+      color: hovered ? "#D6BCFA" : "#8A898C",
+      roughness: 0.8,
+      metalness: 0.1,
+      emissive: "#6b21a8",
+      emissiveIntensity: hovered ? 0.1 : 0
+    });
+  }, [hovered]);
   
   const handlePointerOver = useCallback(() => {
     setHover(true);
@@ -80,11 +74,15 @@ export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
       
       // Subtle glow effect - adjusting emissive intensity
       const material = meshRef.current.material as MeshStandardMaterial;
-      material.emissiveIntensity = 0.1 + Math.sin(Date.now() * 0.003) * 0.05;
+      if (material) {
+        material.emissiveIntensity = 0.1 + Math.sin(Date.now() * 0.003) * 0.05;
+      }
     } else {
       meshRef.current.position.y = y;
       const material = meshRef.current.material as MeshStandardMaterial;
-      material.emissiveIntensity = 0;
+      if (material) {
+        material.emissiveIntensity = 0;
+      }
     }
   });
   
@@ -101,24 +99,41 @@ export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
       >
         {/* Simple tombstone shape - rounded top */}
         <boxGeometry args={[0.6, 1.0, 0.1]} />
-        <meshStandardMaterial
-          map={fallbackTexture || stoneTexture || null}
-          roughness={0.8}
-          metalness={0.1}
-          color={hovered ? "#D6BCFA" : "#8A898C"}
-          emissive="#6b21a8"
-          emissiveIntensity={0}
-        />
+        {stoneTexture ? (
+          <meshStandardMaterial
+            map={stoneTexture}
+            roughness={0.8}
+            metalness={0.1}
+            color={hovered ? "#D6BCFA" : "#8A898C"}
+            emissive="#6b21a8"
+            emissiveIntensity={0}
+          />
+        ) : (
+          <meshStandardMaterial
+            roughness={0.8}
+            metalness={0.1}
+            color={hovered ? "#D6BCFA" : "#8A898C"}
+            emissive="#6b21a8"
+            emissiveIntensity={0}
+          />
+        )}
       </mesh>
       
       {/* Base of the tombstone */}
       <mesh position={[0, -0.5, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.8, 0.1, 0.3]} />
-        <meshStandardMaterial
-          map={fallbackTexture || stoneTexture || null}
-          color="#555555"
-          roughness={0.9}
-        />
+        {stoneTexture ? (
+          <meshStandardMaterial
+            map={stoneTexture}
+            color="#555555"
+            roughness={0.9}
+          />
+        ) : (
+          <meshStandardMaterial
+            color="#555555"
+            roughness={0.9}
+          />
+        )}
       </mesh>
     </group>
   );
