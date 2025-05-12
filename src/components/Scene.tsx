@@ -1,5 +1,5 @@
 
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Environment, useTexture } from '@react-three/drei';
 import { Vector3, RepeatWrapping, Raycaster, Vector2, Mesh, Fog, MeshStandardMaterial, Color } from 'three';
@@ -49,48 +49,43 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
   const [textureLoaded, setTextureLoaded] = useState(false);
   const [textureError, setTextureError] = useState(false);
   
-  // Use a data URL as a backup texture if the file loading fails
-  const textureProps = useMemo(() => ({
-    onLoad: () => setTextureLoaded(true),
-    onError: () => setTextureError(true)
-  }), []);
-  
-  // Try to load texture with fallback behavior
-  let texture;
-  try {
-    // Using a try/catch and conditional to handle texture loading safely
-    if (!textureLoaded && !textureError) {
-      try {
-        texture = useTexture('/textures/grass.jpg', textureProps);
+  // Load texture properly - need to fix how we pass the callbacks
+  const grassTexture = useMemo(() => {
+    try {
+      if (!textureLoaded && !textureError) {
+        // Load texture from file path
+        const texture = useTexture('/textures/grass.jpg');
         if (texture) {
           texture.repeat.set(20, 20);
           texture.wrapS = texture.wrapT = RepeatWrapping;
+          setTextureLoaded(true);
+          return texture;
         }
-      } catch (error) {
-        console.warn('Failed to load grass texture:', error);
-        setTextureError(true);
       }
+      return null;
+    } catch (error) {
+      console.warn('Failed to load grass texture:', error);
+      setTextureError(true);
+      return null;
     }
-  } catch (error) {
-    console.warn('Texture loading issue:', error);
-    setTextureError(true);
-  }
+  }, [textureLoaded, textureError]);
 
   // Create a dynamic fallback texture using the base64 string if needed
   const fallbackTexture = useMemo(() => {
-    if (textureError || !texture) {
-      const img = new Image();
-      img.src = grassTextureBase64;
-      const tex = useTexture({ map: img.src });
-      if (tex && tex.map) {
-        tex.map.repeat.set(20, 20);
-        tex.map.wrapS = tex.map.wrapT = RepeatWrapping;
-        return tex.map;
+    if (textureError || !grassTexture) {
+      try {
+        const texture = useTexture('/textures/grass.jpg');
+        if (texture) {
+          texture.repeat.set(20, 20);
+          texture.wrapS = texture.wrapT = RepeatWrapping;
+          return texture;
+        }
+      } catch (e) {
+        console.warn("Fallback texture also failed:", e);
       }
-      return null;
     }
     return null;
-  }, [textureError, texture]);
+  }, [textureError, grassTexture]);
 
   useFrame(() => {
     const time = Date.now() * 0.0005;
@@ -171,7 +166,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
       >
         <planeGeometry args={[100, 100]} />
         <meshStandardMaterial 
-          map={textureError ? fallbackTexture : texture}
+          map={fallbackTexture || grassTexture || null}
           color="#1f2025"
           roughness={0.9}
           metalness={0.1}
@@ -189,3 +184,4 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
     </>
   );
 };
+

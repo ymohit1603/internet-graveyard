@@ -27,29 +27,32 @@ export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
   const [textureLoaded, setTextureLoaded] = useState(false);
   const [textureError, setTextureError] = useState(false);
   
-  // Load stone texture with error handling
-  const textureProps = useMemo(() => ({
-    onLoad: () => setTextureLoaded(true),
-    onError: () => setTextureError(true)
-  }), []);
-  
-  let stoneTexture;
-  try {
-    if (!textureLoaded && !textureError) {
-      stoneTexture = useTexture('/textures/stone.jpg', textureProps);
+  // Load stone texture properly
+  const stoneTexture = useMemo(() => {
+    try {
+      if (!textureLoaded && !textureError) {
+        const texture = useTexture('/textures/stone.jpg');
+        setTextureLoaded(true);
+        return texture;
+      }
+      return null;
+    } catch (error) {
+      console.warn('Failed to load stone texture:', error);
+      setTextureError(true);
+      return null;
     }
-  } catch (error) {
-    console.warn('Failed to load stone texture:', error);
-    setTextureError(true);
-  }
+  }, [textureLoaded, textureError]);
   
-  // Create a dynamic fallback texture using the base64 string if needed
+  // Create a dynamic fallback texture if needed
   const fallbackTexture = useMemo(() => {
     if (textureError || !stoneTexture) {
-      const img = new Image();
-      img.src = stoneTextureBase64;
-      const tex = useTexture({ map: img.src });
-      return tex?.map || null;
+      try {
+        const texture = useTexture('/textures/stone.jpg');
+        return texture;
+      } catch (e) {
+        console.warn("Fallback texture also failed:", e);
+        return null;
+      }
     }
     return null;
   }, [textureError, stoneTexture]);
@@ -99,7 +102,7 @@ export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
         {/* Simple tombstone shape - rounded top */}
         <boxGeometry args={[0.6, 1.0, 0.1]} />
         <meshStandardMaterial
-          map={textureError ? fallbackTexture : stoneTexture}
+          map={fallbackTexture || stoneTexture || null}
           roughness={0.8}
           metalness={0.1}
           color={hovered ? "#D6BCFA" : "#8A898C"}
@@ -112,7 +115,7 @@ export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
       <mesh position={[0, -0.5, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.8, 0.1, 0.3]} />
         <meshStandardMaterial
-          map={textureError ? fallbackTexture : stoneTexture}
+          map={fallbackTexture || stoneTexture || null}
           color="#555555"
           roughness={0.9}
         />

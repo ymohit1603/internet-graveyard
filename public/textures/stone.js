@@ -1,5 +1,5 @@
 
-// This is a JavaScript module that exports a base64 encoded image
-// We'll use this to provide a fallback texture without relying on external files
+// This is a JavaScript module that exports the path to a stone texture
+// so we can access it from our code
 
-export const stoneTextureBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCAAQABADAREAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgcI/8QAJRAAAgEDAwIHAQAAAAAAAAAAAQIDBAURAAYhBxITFCIxQVFh/8QAFgEBAQEAAAAAAAAAAAAAAAAABAMF/8QAHxEAAgIBBQEBAAAAAAAAAAAAAAECEVEDEiExQROR/9oADAMBAAIRAxEAPwC6+p/VnbFHtmoqKG4LJcaWlMscRHKg58+ePbIPHOccdbbfLjkGbb9OPDnXc++q+tuJi2/QSQbepqVmSfrJlJbHrkZA+s/Oaq7arLv6J0Z76MDbtdRw+ZYOIo2IUyEckEE8cckk5+/jON1fRKbUnYRN1imucTxGGFmicgxyRgkA/wAI4xn644zjIESo7nQdeY7KGWAy+JiLPPxxyef5xjSnrSlI3Gnwc5ttKqc4GFPtyR/M1flcixYLr9P/2Q==";
+export const stoneTextureBase64 = "/textures/stone.jpg";
