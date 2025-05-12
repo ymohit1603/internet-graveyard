@@ -3,7 +3,6 @@ import { useState, useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import { MeshStandardMaterial, Mesh } from 'three';
-import { stoneTextureBase64 } from '../../public/textures/stone';
 
 export type TombstoneProps = {
   id?: string;
@@ -27,18 +26,19 @@ export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
   const [textureLoaded, setTextureLoaded] = useState(false);
   const [textureError, setTextureError] = useState(false);
   
-  // Attempt to load stone texture with proper dependency array
-  const stoneTexture = useMemo(() => {
-    try {
-      const texture = useTexture('/textures/stone.jpg');
+  // Safe texture loading directly in the component
+  let stoneTexture = null;
+  try {
+    stoneTexture = useTexture('/textures/stone.jpg');
+    if (stoneTexture && !textureLoaded) {
       setTextureLoaded(true);
-      return texture;
-    } catch (error) {
+    }
+  } catch (error) {
+    if (!textureError) {
       console.warn('Failed to load stone texture:', error);
       setTextureError(true);
-      return null;
     }
-  }, []);
+  }
   
   // Simple fallback material
   const fallbackMaterial = useMemo(() => {

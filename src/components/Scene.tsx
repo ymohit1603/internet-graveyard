@@ -5,7 +5,6 @@ import { OrbitControls, PerspectiveCamera, Environment, useTexture } from '@reac
 import { Vector3, RepeatWrapping, Raycaster, Vector2, Mesh, Fog, MeshStandardMaterial, Color } from 'three';
 import { Tombstone, TombstoneProps } from './Tombstone';
 import { useIsMobile } from '../hooks/use-mobile';
-import { grassTextureBase64 } from '../../public/textures/grass';
 
 type SceneProps = {
   tombstones: TombstoneProps[];
@@ -41,62 +40,58 @@ export const Scene = ({ tombstones = [], onRightClick, onTombstoneClick }: Scene
 const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps) => {
   const { camera, gl, scene } = useThree();
   const groundRef = useRef<Mesh>(null);
-  const raycaster = useMemo(() => new Raycaster(), []);
-  const mouse = useMemo(() => new Vector2(), []);
   const isMobile = useIsMobile();
   
-  // Error handling for textures
+  // Safe texture loading with proper dependency management
   const [textureLoaded, setTextureLoaded] = useState(false);
   const [textureError, setTextureError] = useState(false);
   
-  // Load texture properly with proper dependency array
-  const grassTexture = useMemo(() => {
-    try {
-      if (!textureLoaded && !textureError) {
-        // Load texture from file path
-        const texture = useTexture('/textures/grass.jpg');
-        if (texture) {
-          texture.repeat.set(20, 20);
-          texture.wrapS = texture.wrapT = RepeatWrapping;
-          setTextureLoaded(true);
-          return texture;
-        }
-      }
-      return null;
-    } catch (error) {
+  // Create raycaster and mouse outside of render to avoid rerenders
+  const raycaster = useMemo(() => new Raycaster(), []);
+  const mouse = useMemo(() => new Vector2(), []);
+  
+  // Safe texture loading with proper error handling
+  let grassTexture = null;
+  try {
+    grassTexture = useTexture('/textures/grass.jpg');
+    if (grassTexture && !textureLoaded) {
+      grassTexture.repeat.set(20, 20);
+      grassTexture.wrapS = grassTexture.wrapT = RepeatWrapping;
+      setTextureLoaded(true);
+    }
+  } catch (error) {
+    if (!textureError) {
       console.warn('Failed to load grass texture:', error);
       setTextureError(true);
-      return null;
     }
-  }, [textureLoaded, textureError]);
-
-  // Create a dynamic fallback texture using a simple color instead
+  }
+  
+  // Create a fallback material if texture fails to load
   const fallbackMaterial = useMemo(() => {
-    if (textureError || !grassTexture) {
-      const material = new MeshStandardMaterial({
-        color: "#1f2025",
-        roughness: 0.9,
-        metalness: 0.1
-      });
-      return material;
-    }
-    return null;
-  }, [textureError, grassTexture]);
-
+    return new MeshStandardMaterial({
+      color: "#1f2025",
+      roughness: 0.9,
+      metalness: 0.1
+    });
+  }, []);
+  
+  // Fog animation effect
   useFrame(() => {
+    if (!scene) return;
+    
     const time = Date.now() * 0.0005;
     const fogColor = new Vector3(0.14, 0.15, 0.18);
     const haze = Math.sin(time) * 0.01 + 0.1;
     fogColor.addScalar(haze);
     
-    // Access fog through scene property
-    if (scene && scene.fog) {
+    if (scene.fog) {
       (scene.fog as Fog).color.set(
         `rgb(${Math.floor(fogColor.x * 255)},${Math.floor(fogColor.y * 255)},${Math.floor(fogColor.z * 255)})`
       );
     }
   });
 
+  // Handle right-click to place tombstone
   const handlePlaceTombstone = useCallback((event: any) => {
     // Only process right-click (button 2)
     if (event.button !== 2) return;
