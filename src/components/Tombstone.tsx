@@ -23,9 +23,16 @@ export type TombstoneProps = {
 export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
   const meshRef = useRef<Mesh>(null);
   const [hovered, setHover] = useState(false);
+  const [textureError, setTextureError] = useState(false);
   
-  // Load stone texture
-  const stoneTexture = useTexture('/stone-texture.jpg');
+  // Load stone texture with error handling
+  let stoneTexture;
+  try {
+    stoneTexture = useTexture('/stone-texture.jpg');
+  } catch (error) {
+    console.warn('Failed to load stone texture:', error);
+    setTextureError(true);
+  }
   
   // Hover animation
   useFrame(() => {
@@ -62,7 +69,7 @@ export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
         {/* Simple tombstone shape - rounded top */}
         <boxGeometry args={[0.6, 1.0, 0.1]} />
         <meshStandardMaterial
-          map={stoneTexture}
+          map={textureError ? null : stoneTexture}
           roughness={0.8}
           metalness={0.1}
           color={hovered ? "#D6BCFA" : "#8A898C"}
@@ -75,7 +82,7 @@ export const Tombstone = ({ x, y, z, onClick }: TombstoneProps) => {
       <mesh position={[0, -0.5, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.8, 0.1, 0.3]} />
         <meshStandardMaterial
-          map={stoneTexture} 
+          map={textureError ? null : stoneTexture}
           color="#555555"
           roughness={0.9}
         />

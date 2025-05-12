@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Scene } from '../components/Scene';
+import { SceneLoader } from '../components/SceneLoader';
 import { TombstoneForm, TombstoneFormData } from '../components/TombstoneForm';
 import { TombstoneDetails } from '../components/TombstoneDetails';
 import { TombstoneProps } from '../components/Tombstone';
@@ -91,7 +91,7 @@ const Index = () => {
   
   return (
     <div className="relative h-screen w-screen overflow-hidden">
-      <Scene 
+      <SceneLoader
         tombstones={tombstones}
         onRightClick={handleRightClick}
         onTombstoneClick={handleTombstoneClick}

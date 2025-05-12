@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Environment, useTexture } from '@react-three/drei';
-import { Vector3, RepeatWrapping, Raycaster, Vector2, Mesh, Fog, MeshStandardMaterial } from 'three';
+import { Vector3, RepeatWrapping, Raycaster, Vector2, Mesh, Fog, MeshStandardMaterial, Color } from 'three';
 import { Tombstone, TombstoneProps } from './Tombstone';
 import { useIsMobile } from '../hooks/use-mobile';
 
@@ -44,17 +44,30 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
   const mouse = new Vector2();
   const isMobile = useIsMobile();
   
-  // Ground texture
-  const texture = useTexture('/grass-texture.jpg');
-  texture.repeat.set(20, 20);
-  texture.wrapS = texture.wrapT = RepeatWrapping;
+  // Error handling for textures
+  const [textureError, setTextureError] = useState(false);
+  
+  // Try to load texture, fall back to no texture if it fails
+  let texture;
+  try {
+    texture = useTexture('/grass-texture.jpg');
+    if (texture) {
+      texture.repeat.set(20, 20);
+      texture.wrapS = texture.wrapT = RepeatWrapping;
+    }
+  } catch (error) {
+    console.warn('Failed to load grass texture:', error);
+    setTextureError(true);
+  }
 
   useFrame(() => {
     const time = Date.now() * 0.0005;
     const fogColor = new Vector3(0.14, 0.15, 0.18);
     const haze = Math.sin(time) * 0.01 + 0.1;
     fogColor.addScalar(haze);
-    if (gl.scene.fog) {
+    
+    // Access fog through scene property
+    if (gl.scene && gl.scene.fog) {
       (gl.scene.fog as Fog).color.set(
         `rgb(${Math.floor(fogColor.x * 255)},${Math.floor(fogColor.y * 255)},${Math.floor(fogColor.z * 255)})`
       );
@@ -124,7 +137,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
       >
         <planeGeometry args={[100, 100]} />
         <meshStandardMaterial 
-          map={texture}
+          map={textureError ? null : texture}
           color="#1f2025"
           roughness={0.9}
           metalness={0.1}
