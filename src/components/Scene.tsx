@@ -1,10 +1,11 @@
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Environment, useTexture } from '@react-three/drei';
 import { Vector3, RepeatWrapping, Raycaster, Vector2, Mesh, Fog, MeshStandardMaterial, Color } from 'three';
 import { Tombstone, TombstoneProps } from './Tombstone';
 import { useIsMobile } from '../hooks/use-mobile';
+import { grassTextureBase64 } from '../../public/textures/grass';
 
 type SceneProps = {
   tombstones: TombstoneProps[];
@@ -38,27 +39,58 @@ export const Scene = ({ tombstones = [], onRightClick, onTombstoneClick }: Scene
 };
 
 const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps) => {
-  const { camera, gl } = useThree();
+  const { camera, gl, scene } = useThree();
   const groundRef = useRef<Mesh>(null);
-  const raycaster = new Raycaster();
-  const mouse = new Vector2();
+  const raycaster = useMemo(() => new Raycaster(), []);
+  const mouse = useMemo(() => new Vector2(), []);
   const isMobile = useIsMobile();
   
   // Error handling for textures
+  const [textureLoaded, setTextureLoaded] = useState(false);
   const [textureError, setTextureError] = useState(false);
   
-  // Try to load texture, fall back to no texture if it fails
+  // Use a data URL as a backup texture if the file loading fails
+  const textureProps = useMemo(() => ({
+    onLoad: () => setTextureLoaded(true),
+    onError: () => setTextureError(true)
+  }), []);
+  
+  // Try to load texture with fallback behavior
   let texture;
   try {
-    texture = useTexture('/grass-texture.jpg');
-    if (texture) {
-      texture.repeat.set(20, 20);
-      texture.wrapS = texture.wrapT = RepeatWrapping;
+    // Using a try/catch and conditional to handle texture loading safely
+    if (!textureLoaded && !textureError) {
+      try {
+        texture = useTexture('/textures/grass.jpg', textureProps);
+        if (texture) {
+          texture.repeat.set(20, 20);
+          texture.wrapS = texture.wrapT = RepeatWrapping;
+        }
+      } catch (error) {
+        console.warn('Failed to load grass texture:', error);
+        setTextureError(true);
+      }
     }
   } catch (error) {
-    console.warn('Failed to load grass texture:', error);
+    console.warn('Texture loading issue:', error);
     setTextureError(true);
   }
+
+  // Create a dynamic fallback texture using the base64 string if needed
+  const fallbackTexture = useMemo(() => {
+    if (textureError || !texture) {
+      const img = new Image();
+      img.src = grassTextureBase64;
+      const tex = useTexture({ map: img.src });
+      if (tex && tex.map) {
+        tex.map.repeat.set(20, 20);
+        tex.map.wrapS = tex.map.wrapT = RepeatWrapping;
+        return tex.map;
+      }
+      return null;
+    }
+    return null;
+  }, [textureError, texture]);
 
   useFrame(() => {
     const time = Date.now() * 0.0005;
@@ -67,14 +99,14 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
     fogColor.addScalar(haze);
     
     // Access fog through scene property
-    if (gl.scene && gl.scene.fog) {
-      (gl.scene.fog as Fog).color.set(
+    if (scene && scene.fog) {
+      (scene.fog as Fog).color.set(
         `rgb(${Math.floor(fogColor.x * 255)},${Math.floor(fogColor.y * 255)},${Math.floor(fogColor.z * 255)})`
       );
     }
   });
 
-  const handlePlaceTombstone = (event: any) => {
+  const handlePlaceTombstone = useCallback((event: any) => {
     // Only process right-click (button 2)
     if (event.button !== 2) return;
     
@@ -86,17 +118,19 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
     raycaster.setFromCamera(mouse, camera);
     
     // Calculate objects intersecting the picking ray
-    const intersects = raycaster.intersectObject(groundRef.current!, false);
-    
-    if (intersects.length > 0) {
-      const point = intersects[0].point;
-      onRightClick({ 
-        x: Math.round(point.x * 100) / 100, 
-        y: Math.round(point.y * 100) / 100, 
-        z: Math.round(point.z * 100) / 100 
-      });
+    if (groundRef.current) {
+      const intersects = raycaster.intersectObject(groundRef.current, false);
+      
+      if (intersects.length > 0) {
+        const point = intersects[0].point;
+        onRightClick({ 
+          x: Math.round(point.x * 100) / 100, 
+          y: Math.round(point.y * 100) / 100, 
+          z: Math.round(point.z * 100) / 100 
+        });
+      }
     }
-  };
+  }, [camera, gl, mouse, onRightClick, raycaster]);
   
   return (
     <>
@@ -137,7 +171,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick }: SceneProps
       >
         <planeGeometry args={[100, 100]} />
         <meshStandardMaterial 
-          map={textureError ? null : texture}
+          map={textureError ? fallbackTexture : texture}
           color="#1f2025"
           roughness={0.9}
           metalness={0.1}
