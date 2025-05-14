@@ -3,16 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { getTwitterProfile } from '@/lib/twitter';
+import { openPaddleCheckout, type TombstonePaymentData } from '@/lib/paddle';
+import { createTombstone } from '@/lib/supabase';
 
-// Demo data for the preview
-const DEMO_DATA: TombstoneFormData = {
-  twitter_handle: '@demo_user',
-  username: 'Demo User',
-  avatar_url: 'https://picsum.photos/id/1005/200',
-  title: 'My Failed Startup',
-  description: 'Spent 6 months building the next big thing. Turns out nobody wanted it. RIP $50k savings.',
-  promo_url: 'https://example.com'
-};
+interface LoadingStates {
+  profileFetch: boolean;
+  payment: boolean;
+  databaseUpdate: boolean;
+}
 
 export type TombstoneFormData = {
   twitter_handle: string;
@@ -39,7 +38,15 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
     promo_url: ''
   });
   
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingStates, setLoadingStates] = useState<LoadingStates>({
+    profileFetch: false,
+    payment: false,
+    databaseUpdate: false
+  });
+  
+  const [paymentStep, setPaymentStep] = useState<'form' | 'processing'>('form');
+  
+  const isLoading = Object.values(loadingStates).some(Boolean);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -47,30 +54,43 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
   };
   
   const handleTwitterHandleBlur = async () => {
-    // In a real implementation, you would fetch the Twitter profile
-    // For the demo, we're just setting mock data
-    if (formData.twitter_handle && !formData.username) {
+    if (!formData.twitter_handle || loadingStates.profileFetch) return;
+
+    try {
+      setLoadingStates(prev => ({ ...prev, profileFetch: true }));
+      const handle = formData.twitter_handle.replace('@', '');
+      const profile = await getTwitterProfile(handle);
+      
+    if (profile) {
       setFormData({
         ...formData,
-        username: formData.twitter_handle.replace('@', ''),
-        avatar_url: 'https://picsum.photos/200' // Placeholder
+        twitter_handle: profile.username,
+        username: profile.name,
+        avatar_url: profile.profileImageUrl
       });
       
-      toast.info("Profile fetched!", {
-        description: "Username and avatar populated from Twitter handle"
+        toast.success("Profile found!", {
+          description: "Username and avatar populated from Twitter"
       });
+      } else {
+      toast.error("Profile not found", {
+        description: "Please check your Twitter handle and try again"
+      });
+    }
+    } catch (error) {
+      toast.error("Error fetching profile", {
+        description: "Please try again later"
+      });
+    } finally {
+      setLoadingStates(prev => ({ ...prev, profileFetch: false }));
     }
   };
 
-  const handleDemoClick = () => {
-    setFormData(DEMO_DATA);
-    toast.info("Demo data loaded!", {
-      description: "Form filled with example data. Click 'Pay $1' to see how it looks!"
-    });
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isLoading) return;
     
     // Validation
     if (!formData.twitter_handle || !formData.title || !formData.description) {
@@ -96,22 +116,88 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
       return;
     }
     
-    setIsLoading(true);
+    setLoadingStates(prev => ({ ...prev, payment: true }));
+    setPaymentStep('processing');
     
-    // Simulate payment processing
-    setTimeout(() => {
-      onSubmit({
-        ...formData,
-        ...position
+    // Process payment with Paddle
+    try {
+      const paymentData: TombstonePaymentData = {
+        title: formData.title,
+        twitter_handle: formData.twitter_handle,
+        description: formData.description,
+        promo_url: formData.promo_url
+      };
+
+      await openPaddleCheckout({
+        paymentData,
+        successCallback: async (transactionId) => {
+          try {
+            setLoadingStates(prev => ({ ...prev, databaseUpdate: true }));
+    
+            // Create tombstone with transaction ID
+            const newTombstone = await createTombstone({
+              ...formData,
+              ...position,
+              transaction_id: transactionId,
+              payment_status: 'completed'
+            });
+
+            if (!newTombstone) {
+              throw new Error('Failed to create tombstone');
+            }
+
+            // Submit to parent component for UI update
+            onSubmit({
+              ...formData,
+              ...position,
+            });
+            
+            toast.success("Payment successful!", {
+              description: "Your tombstone has been created"
+            });
+            
+            onClose();
+          } catch (error) {
+            console.error('Error creating tombstone:', error);
+            if (error instanceof Error) {
+              if (error.message === 'User already has a tombstone') {
+                toast.error("You already have a tombstone", {
+                  description: "Each Twitter handle can only have one tombstone"
+                });
+              } else if (error.message === 'Position is already taken') {
+                toast.error("Position is taken", {
+                  description: "Please try placing your tombstone in a different location"
+                });
+              } else {
+                toast.error("Failed to create tombstone", {
+                  description: "Payment successful but tombstone creation failed. Please contact support."
+                });
+              }
+            }
+          } finally {
+            setLoadingStates(prev => ({ ...prev, databaseUpdate: false }));
+          }
+        },
+        errorCallback: (error) => {
+          console.error('Payment error:', error);
+          toast.error("Payment failed", {
+            description: error.message || "Please try again later"
+          });
+          setPaymentStep('form');
+        },
+        closeCallback: () => {
+          setLoadingStates(prev => ({ ...prev, payment: false }));
+          setPaymentStep('form');
+        }
       });
-      
-      setIsLoading(false);
-      onClose();
-      
-      toast.success("Payment successful!", {
-        description: "Your grave has been planted in the graveyard"
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+      toast.error("Payment initialization failed", {
+        description: "Please try again later"
       });
-    }, 1500);
+      setLoadingStates(prev => ({ ...prev, payment: false }));
+      setPaymentStep('form');
+    }
   };
   
   return (
@@ -124,21 +210,23 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
             <h2 className="text-2xl font-serif text-black">Plant your grave!</h2>
             <p className="text-sm text-gray-600">Create a permanent memorial for just $1</p>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleDemoClick}
-            className="text-sm border-gray-300"
-          >
-            Try Demo
-          </Button>
         </div>
         
+        {paymentStep === 'processing' ? (
+          <div className="space-y-4 text-center py-8">
+            <div className="animate-spin w-8 h-8 border-4 border-gray-300 border-t-gray-800 rounded-full mx-auto"></div>
+            <p className="text-gray-600">Processing your payment...</p>
+            <p className="text-sm text-gray-500">Please complete the payment in the Paddle checkout window</p>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="twitter_handle" className="text-sm text-gray-700">
-                X Handle
+                <label htmlFor="twitter_handle" className="text-sm text-gray-700 flex items-center justify-between">
+                  <span>X Handle</span>
+                  {loadingStates.profileFetch && (
+                    <span className="text-xs text-gray-500">Loading profile...</span>
+                  )}
               </label>
               <Input
                 id="twitter_handle"
@@ -148,6 +236,7 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 onChange={handleChange}
                 onBlur={handleTwitterHandleBlur}
                 className="bg-white border-gray-300 text-black"
+                  disabled={isLoading}
                 required
               />
             </div>
@@ -164,8 +253,12 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 onChange={handleChange}
                 maxLength={30}
                 className="bg-white border-gray-300 text-black"
+                  disabled={isLoading}
                 required
               />
+                <p className="text-xs text-gray-500 text-right">
+                  {formData.title.length}/30
+                </p>
             </div>
             
             <div className="space-y-2">
@@ -180,13 +273,17 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 onChange={handleChange}
                 maxLength={140}
                 className="bg-white border-gray-300 text-black h-24"
+                  disabled={isLoading}
                 required
               />
+                <p className="text-xs text-gray-500 text-right">
+                  {formData.description.length}/140
+                </p>
             </div>
             
             <div className="space-y-2">
               <label htmlFor="promo_url" className="text-sm text-gray-700">
-                Link
+                  Link (optional)
               </label>
               <Input
                 id="promo_url"
@@ -195,6 +292,8 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 value={formData.promo_url}
                 onChange={handleChange}
                 className="bg-white border-gray-300 text-black"
+                  disabled={isLoading}
+                  type="url"
               />
             </div>
             
@@ -206,12 +305,10 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
               >
                 {isLoading ? "Processing..." : "Pay $1 to Plant Grave"}
               </Button>
-              <p className="text-xs text-center text-gray-500">
-                Secure payment processed via Stripe
-              </p>
             </div>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

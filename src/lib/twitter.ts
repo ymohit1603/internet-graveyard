@@ -18,22 +18,27 @@ export async function getTwitterProfile(username: string): Promise<TwitterProfil
     );
 
     if (!response.ok) {
-      throw new Error('Failed to fetch Twitter profile');
+      const errorText = await response.text();
+      console.error(`Twitter API error: ${response.status} - ${errorText}`);
+      return null;
     }
 
-    const data = await response.json();
-    
-    if (!data.data) {
+    const json = await response.json();
+
+    const user = json.data;
+
+    if (!user) {
+      console.warn('No user data returned from Twitter API');
       return null;
     }
 
     return {
-      username: data.data.username,
-      name: data.data.name,
-      profileImageUrl: data.data.profile_image_url.replace('_normal', ''), // Get full-size image
+      username: user.username,
+      name: user.name,
+      profileImageUrl: user.profile_image_url?.replace('_normal', '') || '', // fallback if undefined
     };
   } catch (error) {
     console.error('Error fetching Twitter profile:', error);
     return null;
   }
-} 
+}

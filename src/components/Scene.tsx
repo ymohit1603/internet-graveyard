@@ -5,12 +5,15 @@ import { Vector3, RepeatWrapping, Raycaster, Vector2, Mesh, Fog, MeshStandardMat
 import * as THREE from 'three';
 import type { TombstoneProps } from './Tombstone';
 import { useIsMobile } from '../hooks/use-mobile';
+import { debounce } from 'lodash';
+import { toast } from 'sonner';
+import { isPositionAvailable } from '@/lib/supabase';
 
 // Preload the model
 useGLTF.preload('/tombstone-old-cemetery-freiburg/source/shareModel1363733899550499227/model.glb');
 
 // GLB Model component
-function TombstoneGLB({ x = 0, y = 0, z = 0, onClick }) {
+function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
   const [modelError, setModelError] = useState(false);
   const [modelLoaded, setModelLoaded] = useState(false);
   const profileGroupRef = useRef<THREE.Group>(null);
@@ -25,6 +28,9 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick }) {
   // Create a unique instance of the model for each tombstone
   const { scene: originalScene } = useGLTF('/tombstone-old-cemetery-freiburg/source/shareModel1363733899550499227/model.glb');
   const scene = useMemo(() => originalScene.clone(true), [originalScene]);
+
+  // Load profile image texture
+  const profileTexture = useTexture(tombstone.avatar_url);
 
   // Make profile card face camera
   useFrame((state) => {
@@ -75,15 +81,14 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick }) {
           />
         </mesh>
 
-        {/* Profile picture circle */}
+        {/* Profile picture circle with actual Twitter avatar */}
         <mesh position={[-0.5, 0, 0.01]} rotation={[0, 0, 0]}>
           <circleGeometry args={[0.2, 32]} />
           <meshStandardMaterial 
-            color="#f0f0f0"
+            map={profileTexture}
             metalness={0.0}
             roughness={1.0}
             transparent={false}
-            opacity={1}
           />
         </mesh>
 
@@ -106,7 +111,7 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick }) {
             font={undefined}
             fontWeight="600"
           >
-            Blood Believer
+            {tombstone.title || tombstone.name}
           </Text>
           
           <Text
@@ -120,7 +125,7 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick }) {
             font={undefined}
             fontWeight="500"
           >
-            @theranos_believer
+            @{tombstone.twitter_handle}
           </Text>
         </group>
       </group>
@@ -314,13 +319,13 @@ function GrassField({ onPointerDown, groundRef }) {
   return (
     <group ref={groundRef}>
       {/* Rich soil ground */}
-      <mesh 
+    <mesh 
         geometry={groundGeom} 
-        rotation={[-Math.PI / 2, 0, 0]} 
+      rotation={[-Math.PI / 2, 0, 0]} 
         position={[0, 0, 0]} 
-        receiveShadow
-        onPointerDown={onPointerDown}
-      >
+      receiveShadow 
+      onPointerDown={onPointerDown}
+    >
         <meshStandardMaterial 
           color="#1B5E20"
           roughness={1}
@@ -335,12 +340,12 @@ function GrassField({ onPointerDown, groundRef }) {
         castShadow
         receiveShadow
       >
-        <meshStandardMaterial
+      <meshStandardMaterial 
           vertexColors
           side={DoubleSide}
-          roughness={0.8}
-          metalness={0.1}
-        />
+        roughness={0.8}
+        metalness={0.1}
+      />
       </instancedMesh>
     </group>
   );
@@ -350,6 +355,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick, isDarkMode }
   const { camera, gl, scene } = useThree();
   const groundRef = useRef<Mesh>(null);
   const isMobile = useIsMobile();
+  const [isPlacing, setIsPlacing] = useState(false);
   
   // Debug logging
   useEffect(() => {
@@ -360,30 +366,66 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick, isDarkMode }
   const raycaster = useMemo(() => new Raycaster(), []);
   const mouse = useMemo(() => new Vector2(), []);
   
+  // Debounced position check
+  const checkAndNotifyPosition = useMemo(
+    () =>
+      debounce(async (x: number, z: number) => {
+        try {
+          const available = await isPositionAvailable(x, z);
+          if (!available) {
+            toast.error('This spot is taken! Please choose another location.');
+            return false;
+          }
+          return true;
+        } catch (error) {
+          console.error('Error checking position:', error);
+          toast.error('Could not validate position. Please try again.');
+          return false;
+        }
+      }, 300),
+    []
+  );
+  
   // Handle right-click to place tombstone
-  const handlePlaceTombstone = useCallback((event: ThreeEvent<PointerEvent>) => {
+  const handlePlaceTombstone = useCallback(async (event: ThreeEvent<PointerEvent>) => {
     // Check if it's a right click
     if (event.button !== 2) return;
     
-    // Calculate mouse position
-    const rect = gl.domElement.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    // Prevent multiple concurrent placements
+    if (isPlacing) return;
     
+    try {
+      setIsPlacing(true);
+      
+      // Calculate mouse position
+      const rect = gl.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
     raycaster.setFromCamera(mouse, camera);
     
     if (groundRef.current) {
-      const intersects = raycaster.intersectObject(groundRef.current, true);
+        const intersects = raycaster.intersectObject(groundRef.current, true);
       if (intersects.length > 0) {
         const point = intersects[0].point;
+          const x = Math.round(point.x * 100) / 100;
+          const z = Math.round(point.z * 100) / 100;
+          
+          // Check if position is available
+          const isAvailable = await checkAndNotifyPosition(x, z);
+          if (!isAvailable) return;
+          
         onRightClick({ 
-          x: Math.round(point.x * 100) / 100, 
-          y: 0, // Keep y at 0 for ground level
-          z: Math.round(point.z * 100) / 100 
-        });
+            x,
+            y: 0, // Keep y at 0 for ground level
+            z
+          });
+        }
       }
+    } finally {
+      setIsPlacing(false);
     }
-  }, [camera, gl, mouse, onRightClick, raycaster]);
+  }, [camera, gl, mouse, onRightClick, raycaster, isPlacing, checkAndNotifyPosition]);
   
   // Prevent context menu on the canvas
   useEffect(() => {
@@ -438,7 +480,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick, isDarkMode }
         intensity={1.0} 
       />
       
-      {/* Main directional light - increased intensity */}
+      {/* Main directional light */}
       <directionalLight
         position={[10, 20, 10]}
         intensity={2.0}
@@ -447,7 +489,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick, isDarkMode }
         shadow-mapSize-height={2048}
       />
       
-      {/* Fill light - increased intensity */}
+      {/* Fill light */}
       <directionalLight
         position={[-10, 10, -10]}
         intensity={1.2}
@@ -482,6 +524,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick, isDarkMode }
             y={tombstone.y}
             z={tombstone.z}
             onClick={() => onTombstoneClick(tombstone)}
+            tombstone={tombstone}
           />
         ))}
       </Suspense>

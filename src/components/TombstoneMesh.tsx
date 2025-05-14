@@ -24,7 +24,7 @@ export function TombstoneMesh({
   const marbleTexture = useTexture('/textures/tombstone/lambert1_baseColor.jpeg');
   const normalMap = useTexture('/textures/tombstone/lambert1_normal.png');
   const roughnessMap = useTexture('/textures/tombstone/lambert1_metallicRoughness.png');
-
+  
   // Load avatar texture for profile picture
   const avatarTexture = avatar_url ? useTexture(avatar_url) : null;
 

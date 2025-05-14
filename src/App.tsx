@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import { TwitterTombstone } from '@/components/TwitterTombstone';
 import { initPaddle } from "@/lib/paddle";
 
 const queryClient = new QueryClient();
@@ -29,7 +28,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-        <TwitterTombstone />
+       
       </TooltipProvider>
     </QueryClientProvider>
   );

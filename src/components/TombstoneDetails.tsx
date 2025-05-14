@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { TombstoneProps } from './Tombstone';
+import { X } from 'lucide-react';
 
 type TombstoneDetailsProps = {
   tombstone: TombstoneProps;
@@ -44,25 +45,41 @@ export const TombstoneDetails = ({ tombstone, onClose }: TombstoneDetailsProps) 
   };
   
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
-      
-      <div className="tombstone-details w-full max-w-md p-6 z-10 animate-in fade-in zoom-in duration-300 bg-white rounded-lg shadow-xl">
-        <div className="flex items-center gap-4 mb-6">
+    <div className="fixed right-0 top-0 h-full w-96 z-50 animate-in slide-in-from-right duration-300">
+      <div className="absolute inset-0 bg-white shadow-xl">
+        <div className="h-full overflow-auto">
+          {/* Header */}
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+            <h2 className="text-xl font-serif font-semibold text-black">Tombstone Details</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8 rounded-full hover:bg-gray-100"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* Profile Section */}
+            <div className="flex items-center gap-4">
           <img 
             src={avatar_url} 
             alt={username} 
             className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
           />
           <div>
-            <h2 className="text-xl font-medium text-black">{twitter_handle}</h2>
+                <h3 className="text-lg font-medium text-black">{twitter_handle}</h3>
             <p className="text-gray-600 text-sm">{username}</p>
           </div>
         </div>
         
-        <div className="space-y-4 mb-6">
+            {/* Tombstone Info */}
+            <div className="space-y-4">
           <div>
-            <h3 className="text-2xl font-serif font-semibold text-black">
+                <h3 className="text-2xl font-serif font-semibold text-black mb-2">
               R.I.P.
             </h3>
             <p className="text-xl font-medium text-gray-800">"{title}"</p>
@@ -77,32 +94,25 @@ export const TombstoneDetails = ({ tombstone, onClose }: TombstoneDetailsProps) 
           </p>
         </div>
         
-        <div className="flex justify-between items-center">
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-            className="border-gray-300 text-gray-700 hover:bg-gray-100"
-          >
-            Close
-          </Button>
-          
-          <div className="flex gap-2">
+            {/* Actions */}
+            <div className="space-y-3">
             <Button 
               onClick={handleShare}
               variant="secondary"
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800"
             >
-              Share
+                Share this memorial
             </Button>
             
             {promo_url && (
               <Button 
                 onClick={() => window.open(promo_url, '_blank')}
-                className="bg-gray-800 hover:bg-gray-700 text-white"
+                  className="w-full bg-gray-800 hover:bg-gray-700 text-white"
               >
-                Visit Link
+                  Visit Project Link
               </Button>
             )}
+            </div>
           </div>
         </div>
       </div>
