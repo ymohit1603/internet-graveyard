@@ -1,9 +1,18 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+
+// Demo data for the preview
+const DEMO_DATA: TombstoneFormData = {
+  twitter_handle: '@demo_user',
+  username: 'Demo User',
+  avatar_url: 'https://picsum.photos/id/1005/200',
+  title: 'My Failed Startup',
+  description: 'Spent 6 months building the next big thing. Turns out nobody wanted it. RIP $50k savings.',
+  promo_url: 'https://example.com'
+};
 
 export type TombstoneFormData = {
   twitter_handle: string;
@@ -23,8 +32,8 @@ type TombstoneFormProps = {
 export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProps) => {
   const [formData, setFormData] = useState<TombstoneFormData>({
     twitter_handle: '',
-    username: '', // This would be auto-populated from Twitter API
-    avatar_url: '', // This would be auto-populated from Twitter API
+    username: '',
+    avatar_url: '',
     title: '',
     description: '',
     promo_url: ''
@@ -51,6 +60,13 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
         description: "Username and avatar populated from Twitter handle"
       });
     }
+  };
+
+  const handleDemoClick = () => {
+    setFormData(DEMO_DATA);
+    toast.info("Demo data loaded!", {
+      description: "Form filled with example data. Click 'Pay $1' to see how it looks!"
+    });
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -82,7 +98,7 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
     
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulate payment processing
     setTimeout(() => {
       onSubmit({
         ...formData,
@@ -92,8 +108,8 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
       setIsLoading(false);
       onClose();
       
-      toast.success("Tombstone created!", {
-        description: "Your grave has been planted"
+      toast.success("Payment successful!", {
+        description: "Your grave has been planted in the graveyard"
       });
     }, 1500);
   };
@@ -102,14 +118,27 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
       
-      <div className="tombstone-form w-full max-w-md p-6 z-10 animate-in fade-in slide-in-from-bottom-4">
-        <h2 className="text-2xl font-serif text-white mb-6">Plant a Grave</h2>
+      <div className="tombstone-form w-full max-w-md p-6 z-10 animate-in fade-in slide-in-from-bottom-4 bg-white rounded-lg shadow-xl">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-2xl font-serif text-black">Plant your grave!</h2>
+            <p className="text-sm text-gray-600">Create a permanent memorial for just $1</p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleDemoClick}
+            className="text-sm border-gray-300"
+          >
+            Try Demo
+          </Button>
+        </div>
         
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="twitter_handle" className="text-sm text-gray-300">
-                Twitter Handle (X) *
+              <label htmlFor="twitter_handle" className="text-sm text-gray-700">
+                X Handle
               </label>
               <Input
                 id="twitter_handle"
@@ -118,79 +147,68 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 value={formData.twitter_handle}
                 onChange={handleChange}
                 onBlur={handleTwitterHandleBlur}
-                className="bg-gray-800/60 border-gray-700"
+                className="bg-white border-gray-300 text-black"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="title" className="text-sm text-gray-300">
-                Title of Idea Being "Graved" * <span className="text-xs text-gray-500">(max 30 chars)</span>
+              <label htmlFor="title" className="text-sm text-gray-700">
+                Title
               </label>
               <Input
                 id="title"
                 name="title"
-                placeholder="e.g., Web3 Social Platform"
+                placeholder="Name your grave"
                 value={formData.title}
                 onChange={handleChange}
                 maxLength={30}
-                className="bg-gray-800/60 border-gray-700"
+                className="bg-white border-gray-300 text-black"
                 required
               />
-              <div className="text-xs text-right text-gray-500">
-                {formData.title.length}/30
-              </div>
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="description" className="text-sm text-gray-300">
-                Description * <span className="text-xs text-gray-500">(max 140 chars)</span>
+              <label htmlFor="description" className="text-sm text-gray-700">
+                Description
               </label>
               <Textarea
                 id="description"
                 name="description"
-                placeholder="Why this idea failed or should be laid to rest..."
+                placeholder="Tell us about your idea"
                 value={formData.description}
                 onChange={handleChange}
                 maxLength={140}
-                className="bg-gray-800/60 border-gray-700 h-24"
+                className="bg-white border-gray-300 text-black h-24"
                 required
               />
-              <div className="text-xs text-right text-gray-500">
-                {formData.description.length}/140
-              </div>
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="promo_url" className="text-sm text-gray-300">
-                Promotional URL <span className="text-xs text-gray-500">(optional)</span>
+              <label htmlFor="promo_url" className="text-sm text-gray-700">
+                Link
               </label>
               <Input
                 id="promo_url"
                 name="promo_url"
-                placeholder="https://your-new-thing.com"
+                placeholder="https://example.com"
                 value={formData.promo_url}
                 onChange={handleChange}
-                className="bg-gray-800/60 border-gray-700"
+                className="bg-white border-gray-300 text-black"
               />
             </div>
             
-            <div className="pt-4 flex justify-between items-center">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onClose}
-                className="border-gray-600 text-gray-300 hover:bg-gray-800"
-              >
-                Cancel
-              </Button>
+            <div className="pt-4 space-y-2">
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="bg-purple-700 hover:bg-purple-600"
+                className="w-full bg-gray-800 hover:bg-gray-700 text-white"
               >
-                {isLoading ? "Processing..." : "Pay $1 & Plant Grave"}
+                {isLoading ? "Processing..." : "Pay $1 to Plant Grave"}
               </Button>
+              <p className="text-xs text-center text-gray-500">
+                Secure payment processed via Stripe
+              </p>
             </div>
           </div>
         </form>

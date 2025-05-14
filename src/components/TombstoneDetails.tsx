@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { TombstoneProps } from './Tombstone';
 
@@ -48,29 +47,29 @@ export const TombstoneDetails = ({ tombstone, onClose }: TombstoneDetailsProps) 
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
       
-      <div className="tombstone-details w-full max-w-md p-6 z-10 animate-in fade-in zoom-in duration-300">
+      <div className="tombstone-details w-full max-w-md p-6 z-10 animate-in fade-in zoom-in duration-300 bg-white rounded-lg shadow-xl">
         <div className="flex items-center gap-4 mb-6">
           <img 
             src={avatar_url} 
             alt={username} 
-            className="w-16 h-16 rounded-full object-cover border-2 border-purple-400/30"
+            className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
           />
           <div>
-            <h2 className="text-xl font-medium text-white">{twitter_handle}</h2>
-            <p className="text-gray-400 text-sm">{username}</p>
+            <h2 className="text-xl font-medium text-black">{twitter_handle}</h2>
+            <p className="text-gray-600 text-sm">{username}</p>
           </div>
         </div>
         
         <div className="space-y-4 mb-6">
           <div>
-            <h3 className="text-2xl font-serif font-semibold text-white glow-text">
+            <h3 className="text-2xl font-serif font-semibold text-black">
               R.I.P.
             </h3>
-            <p className="text-xl font-medium text-purple-200">"{title}"</p>
+            <p className="text-xl font-medium text-gray-800">"{title}"</p>
           </div>
           
-          <div className="bg-black/30 rounded-md p-4 border border-gray-700">
-            <p className="text-gray-300 italic">"{description}"</p>
+          <div className="bg-gray-50 rounded-md p-4 border border-gray-200">
+            <p className="text-gray-700 italic">"{description}"</p>
           </div>
           
           <p className="text-sm text-gray-500">
@@ -82,7 +81,7 @@ export const TombstoneDetails = ({ tombstone, onClose }: TombstoneDetailsProps) 
           <Button 
             variant="outline" 
             onClick={onClose}
-            className="border-gray-700 text-gray-300 hover:bg-gray-800"
+            className="border-gray-300 text-gray-700 hover:bg-gray-100"
           >
             Close
           </Button>
@@ -91,7 +90,7 @@ export const TombstoneDetails = ({ tombstone, onClose }: TombstoneDetailsProps) 
             <Button 
               onClick={handleShare}
               variant="secondary"
-              className="bg-gray-800 hover:bg-gray-700"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800"
             >
               Share
             </Button>
@@ -99,7 +98,7 @@ export const TombstoneDetails = ({ tombstone, onClose }: TombstoneDetailsProps) 
             {promo_url && (
               <Button 
                 onClick={() => window.open(promo_url, '_blank')}
-                className="bg-purple-700 hover:bg-purple-600"
+                className="bg-gray-800 hover:bg-gray-700 text-white"
               >
                 Visit Link
               </Button>
