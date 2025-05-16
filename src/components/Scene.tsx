@@ -62,14 +62,14 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
       {/* The actual tombstone model */}
       <primitive 
         object={scene} 
-        position={[0, -1.2, 0]}
-        scale={[1, 1, 1]}
+        position={[0, 0, 0]}
+        scale={[1.5, 1.5, 1.5]}
         rotation={[0, Math.PI, 0]}
         visible={true}
       />
 
       {/* Profile card */}
-      <group ref={profileGroupRef} position={[0.2, -2.9, 0.5]}>
+      <group ref={profileGroupRef} position={[0.2, -2.5, 0.5]}>
         {/* Solid white background with no transparency and shadow effect */}
         <mesh>
           <planeGeometry args={[1.4, 0.7]} />
@@ -203,15 +203,6 @@ function GrassField({ onPointerDown, groundRef }) {
   // Ground geometry with subtle undulations
   const groundGeom = useMemo(() => {
     const geom = new PlaneGeometry(fieldSize, fieldSize, 32, 32);
-    for (let i = 0; i < geom.attributes.position.count; i++) {
-      const x = geom.attributes.position.getX(i);
-      const y = geom.attributes.position.getY(i);
-      // Gentle undulation pattern
-      const undulation = 
-        Math.sin(x * 0.2 + Math.cos(y * 0.15)) * 0.3 +
-        Math.cos(y * 0.25 + Math.sin(x * 0.2)) * 0.3;
-      geom.attributes.position.setZ(i, undulation);
-    }
     geom.computeVertexNormals();
     return geom;
   }, []);
@@ -302,7 +293,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick, isDarkMode }
           
         onRightClick({ 
             x,
-            y: 0, // Keep y at 0 for ground level
+            y: 4.95, // Adjust Y to place tombstone base on the ground
             z
           });
         }
