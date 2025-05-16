@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback, Suspense, useEffect } from 'react';
 import { Canvas, useThree, useFrame, ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Environment, useTexture, Sky, Stars, useGLTF, Text, Billboard } from '@react-three/drei';
-import { Vector3, RepeatWrapping, Raycaster, Vector2, Mesh, Fog, MeshStandardMaterial, Color, DoubleSide, InstancedMesh, Object3D, Shape, ShapeGeometry, InstancedBufferAttribute, PlaneGeometry, BufferGeometry, Float32BufferAttribute, Box3 } from 'three';
+import { Vector3, RepeatWrapping, Raycaster, Vector2, Mesh, Fog, MeshStandardMaterial, Color, DoubleSide, InstancedMesh, Object3D, Shape, ShapeGeometry, InstancedBufferAttribute, PlaneGeometry, BufferGeometry, Float32BufferAttribute, Box3, Texture } from 'three';
 import * as THREE from 'three';
 import type { TombstoneProps } from './Tombstone';
 import { useIsMobile } from '../hooks/use-mobile';
@@ -12,12 +12,43 @@ import { isPositionAvailable } from '@/lib/supabase';
 // Preload the model
 useGLTF.preload('/tombstone-old-cemetery-freiburg/source/shareModel1363733899550499227/model.glb');
 
+// Create a rounded rectangle shape function for reuse
+function createRoundedRectShape(width, height, radius) {
+  const shape = new Shape();
+  
+  // Start at top left corner
+  shape.moveTo(-width/2 + radius, -height/2);
+  
+  // Bottom edge
+  shape.lineTo(width/2 - radius, -height/2);
+  // Bottom right corner
+  shape.quadraticCurveTo(width/2, -height/2, width/2, -height/2 + radius);
+  
+  // Right edge
+  shape.lineTo(width/2, height/2 - radius);
+  // Top right corner
+  shape.quadraticCurveTo(width/2, height/2, width/2 - radius, height/2);
+  
+  // Top edge
+  shape.lineTo(-width/2 + radius, height/2);
+  // Top left corner
+  shape.quadraticCurveTo(-width/2, height/2, -width/2, height/2 - radius);
+  
+  // Left edge
+  shape.lineTo(-width/2, -height/2 + radius);
+  // Bottom left corner
+  shape.quadraticCurveTo(-width/2, -height/2, -width/2 + radius, -height/2);
+  
+  return shape;
+}
+
 // GLB Model component
 function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
   const [modelError, setModelError] = useState(false);
   const [modelLoaded, setModelLoaded] = useState(false);
   const profileGroupRef = useRef<THREE.Group>(null);
   const { camera } = useThree();
+  const avatarMeshRef = useRef<THREE.Mesh>(null);
   
   // Load the model textures
   const textures = useTexture({
@@ -28,9 +59,25 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
   // Create a unique instance of the model for each tombstone
   const { scene: originalScene } = useGLTF('/tombstone-old-cemetery-freiburg/source/shareModel1363733899550499227/model.glb');
   const scene = useMemo(() => originalScene.clone(true), [originalScene]);
+  
+  // Load avatar texture with error handling
+  const avatarUrl = tombstone.avatar_url || '/placeholder-avatar.png';
+  const avatarTexture = useTexture(avatarUrl);
+  
+  // Use a simpler approach with useEffect
+  useEffect(() => {
+    console.log("Avatar URL:", avatarUrl);
+  }, [avatarUrl]);
 
-  // Load profile image texture
-  const profileTexture = useTexture(tombstone.avatar_url);
+  // Texture load effect
+  useFrame(() => {
+    if (avatarMeshRef.current && avatarTexture) {
+      // Force material update
+      if (avatarMeshRef.current.material) {
+        (avatarMeshRef.current.material as any).needsUpdate = true;
+      }
+    }
+  });
 
   // Make profile card face camera
   useFrame((state) => {
@@ -67,70 +114,97 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
         rotation={[0, Math.PI, 0]}
         visible={true}
       />
+<group ref={profileGroupRef} position={[0.2, -2.5, 0.5]}>
+  {/* Top card - Title only */}
+  <group position={[0, 0.8, 0]}>
+    {/* Background */}
+    <mesh>
+      <shapeGeometry args={[createRoundedRectShape(3.3, 0.7, 0.15)]} />
+      <meshStandardMaterial 
+        color="#ffffff" 
+        metalness={0.1}
+        roughness={0.2}
+        side={DoubleSide}
+      />
+    </mesh>
 
-      {/* Profile card */}
-      <group ref={profileGroupRef} position={[0.2, -2.5, 0.5]}>
-        {/* Solid white background with no transparency and shadow effect */}
-        <mesh>
-          <planeGeometry args={[1.4, 0.7]} />
-          <meshStandardMaterial 
-            color="#ffffff" 
-            transparent={false}
-            opacity={1}
-            side={DoubleSide}
-            metalness={0.1}
-            roughness={0.2}
-          />
-        </mesh>
+    {/* Title Text */}
+    <Text
+      position={[0, 0, 0.05]} // Slight z-offset
+      fontSize={0.3}
+      color="black"
+      anchorX="center"
+      anchorY="middle"
+      maxWidth={2.0}
+      fontWeight="bold"
+    >
+      {tombstone.title || tombstone.name}
+    </Text>
+  </group>
 
-        {/* Profile picture circle with actual Twitter avatar */}
-        <mesh position={[-0.5, 0, 0.01]} rotation={[0, 0, 0]}>
-          <circleGeometry args={[0.2, 32]} />
-          <meshStandardMaterial 
-            map={profileTexture ? profileTexture[0] : null}
-            metalness={0.1}
-            roughness={0.3}
-            transparent={false}
-            color="#ffffff"
-          />
-        </mesh>
+  {/* Bottom card - Profile image & handle */}
+  <group position={[0, 0, 0]}>
+    {/* Background */}
+    <mesh>
+      <shapeGeometry args={[createRoundedRectShape(3.3, 0.7, 0.15)]} />
+      <meshStandardMaterial 
+        color="#ffffff" 
+        metalness={0.1}
+        roughness={0.2}
+        side={DoubleSide}
+      />
+    </mesh>
 
-        {/* Profile picture border - made thicker */}
-        <mesh position={[-0.5, 0, 0.02]} rotation={[0, 0, 0]}>
-          <ringGeometry args={[0.19, 0.22, 32]} />
-          <meshStandardMaterial color="#d1d1d1" metalness={0.2} />
-        </mesh>
+    {/* Avatar */}
+    <group position={[-1.3, 0, 0]}>
+      {/* Avatar Circle Background (fallback color) */}
+      <mesh position={[0, 0, 0.015]} rotation={[0, 0, 0]}>
+        <circleGeometry args={[0.25, 32]} />
+        <meshBasicMaterial color="#bbbbbb" />
+      </mesh>
+      
+      {/* Avatar Circle with image */}
+      <mesh 
+        ref={avatarMeshRef}
+        position={[0, 0, 0.02]} 
+        rotation={[0, 0, 0]}
+      >
+        <circleGeometry args={[0.25, 32]} />
+        <meshBasicMaterial 
+          color="#ffffff"
+          map={avatarTexture as any}
+          transparent={true}
+          alphaTest={0.2}
+          side={DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
 
-        {/* Text elements */}
-        <group position={[0, 0, 0.02]}>
-          <Text
-            position={[0, 0.1, 0]}
-            fontSize={0.14}
-            color="black"
-            anchorX="left"
-            anchorY="middle"
-            maxWidth={1}
-            letterSpacing={-0.02}
-            fontWeight="700"
-          >
-            {tombstone.title || tombstone.name}
-          </Text>
-          
-          <Text
-            position={[0, -0.1, 0]}
-            fontSize={0.11}
-            color="#444444"
-            anchorX="left"
-            anchorY="middle"
-            maxWidth={1}
-            letterSpacing={-0.01}
-            fontWeight="500"
-          >
-            @{tombstone.twitter_handle}
-          </Text>
-        </group>
-      </group>
+      {/* Border */}
+      <mesh position={[0, 0, 0.01]}>
+        <ringGeometry args={[0.24, 0.28, 32]} />
+        <meshStandardMaterial 
+          color="#d1d1d1" 
+          metalness={0.2} 
+        />
+      </mesh>
     </group>
+
+    {/* Twitter Handle Text */}
+    <Text
+      position={[-0.7, 0, 0.05]}
+      fontSize={0.3}
+      color="black"
+      anchorX="left"
+      anchorY="middle"
+      maxWidth={2}
+      fontWeight="bold"
+    >
+      @{tombstone.twitter_handle?.replace('@', '')}
+    </Text>
+  </group>
+</group>
+</group>
   );
 }
 
@@ -155,18 +229,24 @@ export const Scene = ({ tombstones = [], onRightClick, onTombstoneClick }: Scene
     <>
       {/* Instructions Panel */}
       <div 
-        className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-lg z-10 max-w-sm"
+        className="absolute top-4 opacity-80 left-4 bg-white p-4 rounded-lg shadow-lg z-10 max-w-sm"
       >
         <h1 className="text-2xl font-serif mb-2 text-black">
-          Internet Graveyard <span className="text-purple-600">3D</span>
-        </h1>
+  Your Idea Isn't Gone—It's Waiting  
+  <br />
+  <div className="text-sm text-gray-700">
+    Breathe new life into your "failed" vision: build its memorial today.
+  </div>
+</h1>
+
+
         <ul className="text-sm space-y-1 text-gray-700">
           <li>🖱️ Hold Ctrl + Right click + drag to rotate view</li>
           <li>🖱️ Right-click anywhere to plant a grave</li>
           <li>✌️ Two finger pinch/spread to zoom in/out</li>
         </ul>
         <p className="mt-2 text-sm text-gray-600">
-          {tombstones.length} projects laid to rest
+          {tombstones.length} /100 memorials planted
         </p>
       </div>
 
@@ -199,7 +279,11 @@ export const Scene = ({ tombstones = [], onRightClick, onTombstoneClick }: Scene
 // Realistic Ground Field Component
 function GrassField({ onPointerDown, groundRef }) {
   const fieldSize = 80;
+  const groundTexture = useTexture('/textures/graveyard_ground_diff.jpg');
   
+  // Configure texture
+  groundTexture.wrapS = groundTexture.wrapT = RepeatWrapping;
+  groundTexture.repeat.set(8, 8); 
   // Ground geometry with subtle undulations
   const groundGeom = useMemo(() => {
     const geom = new PlaneGeometry(fieldSize, fieldSize, 32, 32);
@@ -218,8 +302,9 @@ function GrassField({ onPointerDown, groundRef }) {
         onPointerDown={onPointerDown}
       >
         <meshStandardMaterial 
-          color="#0F3D10"
-          roughness={1}
+          color="#5c4033"
+          map={groundTexture}
+          roughness={0.9}
           metalness={0.1}
         />
       </mesh>
