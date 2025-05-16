@@ -55,22 +55,8 @@ export async function createTombstone(
     throw new Error('Position is already taken');
   }
 
-  // Check if user already has a tombstone
-  const existingTombstone = await getTombstoneByTwitterHandle(tombstone.twitter_handle);
-  if (existingTombstone) {
-    throw new Error('User already has a tombstone');
-  }
 
-  // Check if transaction_id is unique
-  const { data: existingTransaction } = await supabase
-    .from('tombstones')
-    .select('id')
-    .eq('transaction_id', tombstone.transaction_id)
-    .single();
-
-  if (existingTransaction) {
-    throw new Error('Transaction has already been used');
-  }
+ 
 
   // Try up to 3 times to create the tombstone
   for (let attempt = 1; attempt <= 3; attempt++) {
@@ -79,6 +65,7 @@ export async function createTombstone(
         .from('tombstones')
         .insert([{
           ...tombstone,
+          transaction_id: tombstone.transaction_id,
           payment_status: 'completed',
           buried_at: new Date().toISOString()
         }])

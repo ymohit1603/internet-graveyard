@@ -20,6 +20,7 @@ export type TombstoneFormData = {
   title: string;
   description: string;
   promo_url?: string;
+  email: string;
 };
 
 type TombstoneFormProps = {
@@ -35,7 +36,8 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
     avatar_url: '',
     title: '',
     description: '',
-    promo_url: ''
+    promo_url: '',
+    email: ''
   });
   
   const [loadingStates, setLoadingStates] = useState<LoadingStates>({
@@ -59,6 +61,7 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
     try {
       setLoadingStates(prev => ({ ...prev, profileFetch: true }));
       const handle = formData.twitter_handle.replace('@', '');
+      console.log(handle,"handle");
       const profile = await getTwitterProfile(handle);
       
     if (profile) {
@@ -88,14 +91,24 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[TombstoneForm] handleSubmit called');
     
     // Prevent multiple submissions
     if (isLoading) return;
     
     // Validation
-    if (!formData.twitter_handle || !formData.title || !formData.description) {
+    if (!formData.twitter_handle || !formData.title || !formData.description || !formData.email) {
       toast.error("Missing required fields", {
-        description: "Please fill in all required fields"
+        description: "Please fill in all required fields, including email"
+      });
+      return;
+    }
+    
+    // Email format validation (simple regex)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Invalid email format", {
+        description: "Please enter a valid email address"
       });
       return;
     }
@@ -125,22 +138,28 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
         title: formData.title,
         twitter_handle: formData.twitter_handle,
         description: formData.description,
-        promo_url: formData.promo_url
+        promo_url: formData.promo_url,
+        email: formData.email
       };
+      console.log('[TombstoneForm] paymentData for Paddle:', paymentData);
 
       await openPaddleCheckout({
         paymentData,
         successCallback: async (transactionId) => {
+          console.log('[TombstoneForm] Paddle successCallback, transactionId:', transactionId);
           try {
             setLoadingStates(prev => ({ ...prev, databaseUpdate: true }));
     
-            // Create tombstone with transaction ID
-            const newTombstone = await createTombstone({
+            const tombstoneDataForDb = {
               ...formData,
               ...position,
               transaction_id: transactionId,
-              payment_status: 'completed'
-            });
+              payment_status: 'completed' as 'completed' | 'pending' | 'failed'
+            };
+            console.log('[TombstoneForm] Data for createTombstone:', tombstoneDataForDb);
+            // Create tombstone with transaction ID
+            const newTombstone = await createTombstone(tombstoneDataForDb);
+            console.log('[TombstoneForm] newTombstone from DB:', newTombstone);
 
             if (!newTombstone) {
               throw new Error('Failed to create tombstone');
@@ -158,7 +177,7 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
             
             onClose();
           } catch (error) {
-            console.error('Error creating tombstone:', error);
+            console.error('[TombstoneForm] Error creating tombstone in DB:', error);
             if (error instanceof Error) {
               if (error.message === 'User already has a tombstone') {
                 toast.error("You already have a tombstone", {
@@ -179,19 +198,20 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
           }
         },
         errorCallback: (error) => {
-          console.error('Payment error:', error);
+          console.error('[TombstoneForm] Paddle errorCallback:', error);
           toast.error("Payment failed", {
             description: error.message || "Please try again later"
           });
           setPaymentStep('form');
         },
         closeCallback: () => {
+          console.log('[TombstoneForm] Paddle closeCallback triggered');
           setLoadingStates(prev => ({ ...prev, payment: false }));
           setPaymentStep('form');
         }
       });
     } catch (error) {
-      console.error('Error initiating payment:', error);
+      console.error('[TombstoneForm] Error initiating payment process:', error);
       toast.error("Payment initialization failed", {
         description: "Please try again later"
       });
@@ -219,93 +239,105 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
             <p className="text-sm text-gray-500">Please complete the payment in the Paddle checkout window</p>
           </div>
         ) : (
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div className="space-y-2">
-                <label htmlFor="twitter_handle" className="text-sm text-gray-700 flex items-center justify-between">
-                  <span>X Handle</span>
-                  {loadingStates.profileFetch && (
-                    <span className="text-xs text-gray-500">Loading profile...</span>
-                  )}
-              </label>
-              <Input
-                id="twitter_handle"
-                name="twitter_handle"
-                placeholder="@username"
-                value={formData.twitter_handle}
-                onChange={handleChange}
-                onBlur={handleTwitterHandleBlur}
-                className="bg-white border-gray-300 text-black"
-                  disabled={isLoading}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="title" className="text-sm text-gray-700">
-                Title
-              </label>
-              <Input
-                id="title"
-                name="title"
-                placeholder="Name your grave"
-                value={formData.title}
-                onChange={handleChange}
-                maxLength={30}
-                className="bg-white border-gray-300 text-black"
-                  disabled={isLoading}
-                required
-              />
-                <p className="text-xs text-gray-500 text-right">
-                  {formData.title.length}/30
-                </p>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm text-gray-700">
-                Description
-              </label>
-              <Textarea
-                id="description"
-                name="description"
-                placeholder="Tell us about your idea"
-                value={formData.description}
-                onChange={handleChange}
-                maxLength={140}
-                className="bg-white border-gray-300 text-black h-24"
-                  disabled={isLoading}
-                required
-              />
-                <p className="text-xs text-gray-500 text-right">
-                  {formData.description.length}/140
-                </p>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="promo_url" className="text-sm text-gray-700">
-                  Link (optional)
-              </label>
-              <Input
-                id="promo_url"
-                name="promo_url"
-                placeholder="https://example.com"
-                value={formData.promo_url}
-                onChange={handleChange}
-                className="bg-white border-gray-300 text-black"
-                  disabled={isLoading}
-                  type="url"
-              />
-            </div>
-            
-            <div className="pt-4 space-y-2">
-              <Button 
-                type="submit" 
-                disabled={isLoading}
-                className="w-full bg-gray-800 hover:bg-gray-700 text-white"
-              >
-                {isLoading ? "Processing..." : "Pay $1 to Plant Grave"}
-              </Button>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="twitter_handle" className="block text-sm font-medium text-muted-foreground">
+              Twitter Handle (e.g., @username)
+            </label>
+            <Input
+              type="text"
+              name="twitter_handle"
+              id="twitter_handle"
+              value={formData.twitter_handle}
+              onChange={handleChange}
+              onBlur={handleTwitterHandleBlur}
+              placeholder="@username"
+              className="mt-1"
+              disabled={loadingStates.profileFetch || isLoading}
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-muted-foreground">
+              Email Address (for receipt)
+            </label>
+            <Input
+              type="email"
+              name="email"
+              id="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              className="mt-1"
+              disabled={isLoading}
+              required
+            />
+          </div>
+
+          
+
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-muted-foreground">
+              Title
+            </label>
+            <Input
+              id="title"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              maxLength={30}
+              className="bg-white border-gray-300 text-black"
+              disabled={isLoading}
+              required
+            />
+            <p className="text-xs text-gray-500 text-right">
+              {formData.title.length}/30
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-muted-foreground">
+              Description
+            </label>
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              maxLength={140}
+              className="bg-white border-gray-300 text-black h-24"
+              disabled={isLoading}
+              required
+            />
+            <p className="text-xs text-gray-500 text-right">
+              {formData.description.length}/140
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="promo_url" className="block text-sm font-medium text-muted-foreground">
+              Promo URL (optional)
+            </label>
+            <Input
+              id="promo_url"
+              name="promo_url"
+              value={formData.promo_url}
+              onChange={handleChange}
+              className="bg-white border-gray-300 text-black"
+              disabled={isLoading}
+              type="url"
+            />
+          </div>
+
+          <div className="pt-4 space-y-2">
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-gray-800 hover:bg-gray-700 text-white"
+            >
+              {isLoading ? "Processing..." : "Pay $1 to Plant Grave"}
+            </Button>
           </div>
         </form>
         )}

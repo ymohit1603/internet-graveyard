@@ -18,4 +18,5 @@ const processEnv = {
   PADDLE_TOKEN: import.meta.env.VITE_PADDLE_TOKEN,
 } as const;
 
+
 export const env = envSchema.parse(processEnv);
