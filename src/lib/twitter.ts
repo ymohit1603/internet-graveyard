@@ -8,9 +8,10 @@ interface TwitterProfile {
 }
 
 // const API_URL = 'http://localhost:3000/api';
-const API_URL = 'https://d098-2402-3a80-4787-49a1-1530-8a1a-b28b-f703.ngrok-free.app/api';
+const API_URL = process.env.VITE_API_URL;
 
 export async function getTwitterProfile(username: string): Promise<TwitterProfile> {
+  console.log(API_URL,"API_URL");
   console.log(username,"username");
   const url = `${API_URL}/social/profile/${username}`;
   console.log('[getTwitterProfile] Fetching from:', url);

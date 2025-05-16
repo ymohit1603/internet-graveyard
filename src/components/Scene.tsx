@@ -130,12 +130,12 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
 
     {/* Title Text */}
     <Text
-      position={[0, 0, 0.05]} // Slight z-offset
+      position={[-0.1, 0, 0.05]} // Slight z-offset
       fontSize={0.3}
       color="black"
       anchorX="center"
       anchorY="middle"
-      maxWidth={2.0}
+      maxWidth={3.0}
       fontWeight="bold"
     >
       {tombstone.title || tombstone.name}
