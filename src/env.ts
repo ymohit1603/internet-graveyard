@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  TWITTER_BEARER_TOKEN: z.string().min(1, 'Twitter Bearer Token is required'),
   SUPABASE_URL: z.string().min(1, 'Supabase URL is required'),
   SUPABASE_ANON_KEY: z.string().min(1, 'Supabase Anon Key is required'),
   PADDLE_ENVIRONMENT: z.enum(['sandbox', 'production']).default('sandbox'),
@@ -11,7 +10,6 @@ const envSchema = z.object({
 });
 
 const processEnv = {
-  TWITTER_BEARER_TOKEN: import.meta.env.VITE_TWITTER_BEARER_TOKEN,
   SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
   SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
   PADDLE_ENVIRONMENT: import.meta.env.VITE_PADDLE_ENVIRONMENT,

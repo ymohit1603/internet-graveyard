@@ -66,7 +66,7 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
         ...formData,
         twitter_handle: profile.username,
         username: profile.name,
-        avatar_url: profile.profileImageUrl
+        avatar_url: profile.avatar_url
       });
       
         toast.success("Profile found!", {

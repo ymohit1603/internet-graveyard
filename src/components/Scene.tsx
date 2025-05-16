@@ -62,15 +62,15 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
       {/* The actual tombstone model */}
       <primitive 
         object={scene} 
-        position={[0, 5.3, 0]}
-        scale={[1.5, 1.5, 1.5]}
+        position={[0, -1.2, 0]}
+        scale={[1, 1, 1]}
         rotation={[0, Math.PI, 0]}
         visible={true}
       />
 
       {/* Profile card */}
-      <group ref={profileGroupRef} position={[0.4, 2.5, 0.9]}>
-        {/* Solid white background with no transparency */}
+      <group ref={profileGroupRef} position={[0.2, -2.9, 0.5]}>
+        {/* Solid white background with no transparency and shadow effect */}
         <mesh>
           <planeGeometry args={[1.4, 0.7]} />
           <meshStandardMaterial 
@@ -78,6 +78,8 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
             transparent={false}
             opacity={1}
             side={DoubleSide}
+            metalness={0.1}
+            roughness={0.2}
           />
         </mesh>
 
@@ -85,44 +87,43 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
         <mesh position={[-0.5, 0, 0.01]} rotation={[0, 0, 0]}>
           <circleGeometry args={[0.2, 32]} />
           <meshStandardMaterial 
-            map={profileTexture}
-            metalness={0.0}
-            roughness={1.0}
+            map={profileTexture ? profileTexture[0] : null}
+            metalness={0.1}
+            roughness={0.3}
             transparent={false}
+            color="#ffffff"
           />
         </mesh>
 
-        {/* Profile picture border */}
+        {/* Profile picture border - made thicker */}
         <mesh position={[-0.5, 0, 0.02]} rotation={[0, 0, 0]}>
-          <ringGeometry args={[0.19, 0.21, 32]} />
-          <meshStandardMaterial color="#e0e0e0" />
+          <ringGeometry args={[0.19, 0.22, 32]} />
+          <meshStandardMaterial color="#d1d1d1" metalness={0.2} />
         </mesh>
 
         {/* Text elements */}
         <group position={[0, 0, 0.02]}>
           <Text
             position={[0, 0.1, 0]}
-            fontSize={0.12}
+            fontSize={0.14}
             color="black"
             anchorX="left"
             anchorY="middle"
             maxWidth={1}
-            letterSpacing={-0.05}
-            font={undefined}
-            fontWeight="600"
+            letterSpacing={-0.02}
+            fontWeight="700"
           >
             {tombstone.title || tombstone.name}
           </Text>
           
           <Text
             position={[0, -0.1, 0]}
-            fontSize={0.09}
-            color="#666666"
+            fontSize={0.11}
+            color="#444444"
             anchorX="left"
             anchorY="middle"
             maxWidth={1}
-            letterSpacing={-0.05}
-            font={undefined}
+            letterSpacing={-0.01}
             fontWeight="500"
           >
             @{tombstone.twitter_handle}
@@ -195,158 +196,42 @@ export const Scene = ({ tombstones = [], onRightClick, onTombstoneClick }: Scene
   );
 };
 
-// Realistic Grass Field Component
+// Realistic Ground Field Component
 function GrassField({ onPointerDown, groundRef }) {
   const fieldSize = 80;
-  const bladeCount = 20000; // Increased for better coverage
-  const bladeSegments = 4; // For curved blades
-  const dummy = useMemo(() => new Object3D(), []);
   
-  // Ground geometry with more subtle undulations
+  // Ground geometry with subtle undulations
   const groundGeom = useMemo(() => {
     const geom = new PlaneGeometry(fieldSize, fieldSize, 32, 32);
     for (let i = 0; i < geom.attributes.position.count; i++) {
       const x = geom.attributes.position.getX(i);
       const y = geom.attributes.position.getY(i);
-      // More natural undulation pattern
+      // Gentle undulation pattern
       const undulation = 
-        Math.sin(x * 0.3 + Math.cos(y * 0.2)) * 0.2 +
-        Math.cos(y * 0.25 + Math.sin(x * 0.15)) * 0.2 +
-        (Math.random() * 0.1);
+        Math.sin(x * 0.2 + Math.cos(y * 0.15)) * 0.3 +
+        Math.cos(y * 0.25 + Math.sin(x * 0.2)) * 0.3;
       geom.attributes.position.setZ(i, undulation);
     }
     geom.computeVertexNormals();
     return geom;
   }, []);
 
-  // Improved grass blade geometry with natural curve
-  const bladeGeom = useMemo(() => {
-    const points = [];
-    const width = 0.12;
-    const height = 0.8;
-    
-    // Create a curved blade shape
-    for (let i = 0; i <= bladeSegments; i++) {
-      const t = i / bladeSegments;
-      const x = width * 0.5 * Math.sin(t * Math.PI) * (1 - t); // Tapers at top
-      const y = height * t;
-      const z = 0.2 * Math.sin(t * Math.PI); // Natural curve
-      points.push(new Vector3(-x, y, z), new Vector3(x, y, z));
-    }
-
-    const geometry = new BufferGeometry();
-    const vertices = [];
-    const indices = [];
-
-    // Create faces between points
-    for (let i = 0; i < bladeSegments; i++) {
-      const base = i * 2;
-      vertices.push(...points[base].toArray(), ...points[base + 1].toArray());
-      vertices.push(...points[base + 2].toArray(), ...points[base + 3].toArray());
-      
-      indices.push(base, base + 1, base + 2);
-      indices.push(base + 1, base + 3, base + 2);
-    }
-
-    geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-    return geometry;
-  }, []);
-
-  // Natural grass colors
-  const colors = useMemo(() => {
-    const baseColors = [
-      new Color('#2d5a27'), // Deep forest green
-      new Color('#3f7d30'), // Natural grass green
-      new Color('#528c35'), // Medium grass green
-      new Color('#345e2e'), // Shadowed green
-      new Color('#4b6d34'), // Olive grass green
-    ];
-    const arr = new Float32Array(bladeCount * 3);
-    
-    for (let i = 0; i < bladeCount; i++) {
-      const color = baseColors[Math.floor(Math.random() * baseColors.length)].clone();
-      // Add slight random variation to each color
-      color.multiplyScalar(0.9 + Math.random() * 0.2); // Subtler variation
-      const idx = i * 3;
-      arr[idx] = color.r;
-      arr[idx + 1] = color.g;
-      arr[idx + 2] = color.b;
-    }
-    return arr;
-  }, [bladeCount]);
-
-  // Optimized grass blade placement
-  const setInstancedMesh = useCallback((mesh) => {
-    if (!mesh) return;
-
-    // Create a grid-based distribution with randomness
-    const gridSize = Math.sqrt(bladeCount);
-    const cellSize = fieldSize / gridSize;
-
-    for (let i = 0; i < bladeCount; i++) {
-      // Grid position with random offset
-      const gridX = (i % gridSize) * cellSize - fieldSize / 2;
-      const gridZ = Math.floor(i / gridSize) * cellSize - fieldSize / 2;
-      
-      const x = gridX + (Math.random() - 0.5) * cellSize;
-      const z = gridZ + (Math.random() - 0.5) * cellSize;
-      
-      // Sample ground height at this position
-      const groundHeight = 
-        Math.sin(x * 0.3 + Math.cos(z * 0.2)) * 0.2 +
-        Math.cos(z * 0.25 + Math.sin(x * 0.15)) * 0.2;
-
-      dummy.position.set(x, groundHeight, z);
-      
-      // Natural variation in rotation and scale
-      dummy.rotation.y = Math.random() * Math.PI * 2;
-      dummy.rotation.x = (Math.random() - 0.5) * 0.2;
-      dummy.rotation.z = (Math.random() - 0.5) * 0.1;
-      
-      const scale = 0.8 + Math.random() * 0.4;
-      dummy.scale.set(scale, scale, scale);
-      
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    }
-    
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.geometry.setAttribute('color', new InstancedBufferAttribute(colors, 3));
-  }, [bladeCount, colors, dummy, fieldSize]);
-
   return (
     <group ref={groundRef}>
       {/* Rich soil ground */}
-    <mesh 
+      <mesh 
         geometry={groundGeom} 
-      rotation={[-Math.PI / 2, 0, 0]} 
+        rotation={[-Math.PI / 2, 0, 0]} 
         position={[0, 0, 0]} 
-      receiveShadow 
-      onPointerDown={onPointerDown}
-    >
+        receiveShadow 
+        onPointerDown={onPointerDown}
+      >
         <meshStandardMaterial 
-          color="#1B5E20"
+          color="#0F3D10"
           roughness={1}
           metalness={0.1}
         />
       </mesh>
-
-      {/* Grass blades */}
-      <instancedMesh
-        args={[bladeGeom, undefined, bladeCount]}
-        ref={setInstancedMesh}
-        castShadow
-        receiveShadow
-      >
-      <meshStandardMaterial 
-          vertexColors
-          side={DoubleSide}
-        roughness={0.8}
-        metalness={0.1}
-      />
-      </instancedMesh>
     </group>
   );
 }

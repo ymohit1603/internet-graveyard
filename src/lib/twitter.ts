@@ -1,44 +1,27 @@
 import { env } from '@/env';
 
-export interface TwitterProfile {
+interface TwitterProfile {
   username: string;
   name: string;
-  profileImageUrl: string;
+  avatar_url: string;
+  description: string;
 }
 
-export async function getTwitterProfile(username: string): Promise<TwitterProfile | null> {
+const API_URL = 'http://localhost:3000/api';
+
+export async function getTwitterProfile(username: string): Promise<TwitterProfile> {
   try {
-    const response = await fetch(
-      `https://api.twitter.com/2/users/by/username/${username}?user.fields=profile_image_url`,
-      {
-        headers: {
-          'Authorization': `Bearer ${env.TWITTER_BEARER_TOKEN}`,
-        },
-      }
-    );
-
+    const response = await fetch(`${API_URL}/twitter/profile/${username}`);
+    
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Twitter API error: ${response.status} - ${errorText}`);
-      return null;
+      throw new Error('Failed to fetch Twitter profile');
     }
 
-    const json = await response.json();
-
-    const user = json.data;
-
-    if (!user) {
-      console.warn('No user data returned from Twitter API');
-      return null;
-    }
-
-    return {
-      username: user.username,
-      name: user.name,
-      profileImageUrl: user.profile_image_url?.replace('_normal', '') || '', // fallback if undefined
-    };
+    const data = await response.json();
+    console.log('Twitter profile data:', data);
+    return data;
   } catch (error) {
     console.error('Error fetching Twitter profile:', error);
-    return null;
+    throw error;
   }
 }
