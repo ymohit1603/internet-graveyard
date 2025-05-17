@@ -235,7 +235,7 @@ export const Scene = ({ tombstones = [], onRightClick, onTombstoneClick }: Scene
   Your Idea Isn't Gone—It's Waiting  
   <br />
   <div className="text-sm text-gray-700">
-    Breathe new life into your "failed" vision: build its memorial today.
+    Breathe new life into your vision: build its memorial today.
   </div>
 </h1>
 
