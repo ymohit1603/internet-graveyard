@@ -1,215 +1,203 @@
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
 
 const PrivacyPolicyPage = () => {
   return (
-    <main className="prose lg:prose-xl mx-auto p-6">
-        <h1>Privacy Policy for ideas-in-graveyard</h1>
-      <p><strong>Last updated:</strong> May 18, 2025</p>
+    <div className="container mx-auto py-8 px-4">
+      <Card className="border shadow-lg">
+        <CardContent className="p-0">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-t-lg">
+            <h1 className="text-3xl font-bold text-white">Privacy Policy</h1>
+            <p className="text-white/80">Last updated: May 18, 2025</p>
+          </div>
+          
+          <div className="p-6 max-h-[70vh] overflow-y-auto" style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#888 #f1f1f1',
+          }}>
+            <div className="space-y-6">
+              <p>
+                This Terms of Service describes Our policies and procedures on the collection, use and disclosure of Your
+                information when You use the Service and tells You about Your privacy rights and how the law protects You.
+              </p>
+              <p>
+                We use Your Personal data to provide and improve the Service. By using the Service, You agree to the
+                collection and use of information in accordance with this Terms of Service. This Terms of Service has been
+                created with the help of the Free Terms of Service Generator.
+              </p>
 
-      <p>
-        This Terms of Service describes Our policies and procedures on the collection, use and disclosure of Your
-        information when You use the Service and tells You about Your privacy rights and how the law protects You.
-      </p>
-      <p>
-        We use Your Personal data to provide and improve the Service. By using the Service, You agree to the
-        collection and use of information in accordance with this Terms of Service. This Terms of Service has been
-        created with the help of the Free Terms of Service Generator.
-      </p>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Interpretation and Definitions</h2>
+                <h3 className="text-xl font-medium mt-4 mb-2">Interpretation</h3>
+                <p>
+                  The words of which the initial letter is capitalized have meanings defined under the following conditions.
+                  The following definitions shall have the same meaning regardless of whether they appear in singular or in
+                  plural.
+                </p>
 
-      <h2>Interpretation and Definitions</h2>
-      <h3>Interpretation</h3>
-      <p>
-        The words of which the initial letter is capitalized have meanings defined under the following conditions.
-        The following definitions shall have the same meaning regardless of whether they appear in singular or in
-        plural.
-      </p>
+                <h3 className="text-xl font-medium mt-4 mb-2">Definitions</h3>
+                <p>For the purposes of this Privacy Policy:</p>
+                <ul className="list-disc pl-6 my-3 space-y-2">
+                  <li><strong>Account</strong> means a unique account created for You to access our Service or parts of our Service.</li>
+                  <li><strong>Affiliate</strong> means an entity that controls, is controlled by or is under common control with a
+                    party, where "control" means ownership of 50% or more of the shares, equity interest or other securities
+                    entitled to vote for election of directors or other managing authority.
+                  </li>
+                  <li><strong>Company</strong> (referred to as either "the Company", "We", "Us" or "Our" in this Agreement)
+                    refers to ideas-in-graveyard.
+                  </li>
+                  <li><strong>Cookies</strong> are small files that are placed on Your computer, mobile device or any other device
+                    by a website, containing the details of Your browsing history on that website among its many uses.
+                  </li>
+                  <li><strong>Country</strong> refers to: Haryana, India.</li>
+                  <li><strong>Device</strong> means any device that can access the Service such as a computer, a cellphone, or a
+                    digital tablet.
+                  </li>
+                  <li><strong>Personal Data</strong> is any information that relates to an identified or identifiable individual.</li>
+                  <li><strong>Service</strong> refers to the Website.</li>
+                  <li><strong>Service Provider</strong> means any natural or legal person who processes the data on behalf of
+                    the Company.
+                  </li>
+                  <li><strong>Third-party Social Media Service</strong> refers to any website or any social network website
+                    through which a User can log in or create an account to use the Service.
+                  </li>
+                  <li><strong>Usage Data</strong> refers to data collected automatically, either generated by the use of the
+                    Service or from the Service infrastructure itself.
+                  </li>
+                  <li><strong>Website</strong> refers to ideas-in-graveyard, accessible from https://ideas-in-graveyard.space</li>
+                  <li><strong>You</strong> means the individual accessing or using the Service, or the company, or other
+                    legal entity on behalf of which such individual is accessing or using the Service, as applicable.
+                  </li>
+                </ul>
+              </section>
 
-      <h3>Definitions</h3>
-      <p>For the purposes of this Privacy Policy:</p>
-      <ul>
-        <li><strong>Account</strong> means a unique account created for You to access our Service or parts of our Service.</li>
-        <li><strong>Affiliate</strong> means an entity that controls, is controlled by or is under common control with a
-          party, where "control" means ownership of 50% or more of the shares, equity interest or other securities
-          entitled to vote for election of directors or other managing authority.
-        </li>
-        <li><strong>Company</strong> (referred to as either "the Company", "We", "Us" or "Our" in this Agreement)
-          refers to ideas-in-graveyard.
-        </li>
-        <li><strong>Cookies</strong> are small files that are placed on Your computer, mobile device or any other device
-          by a website, containing the details of Your browsing history on that website among its many uses.
-        </li>
-        <li><strong>Country</strong> refers to: Haryana, India.</li>
-        <li><strong>Device</strong> means any device that can access the Service such as a computer, a cellphone, or a
-          digital tablet.
-        </li>
-        <li><strong>Personal Data</strong> is any information that relates to an identified or identifiable individual.</li>
-        <li><strong>Service</strong> refers to the Website.</li>
-        <li><strong>Service Provider</strong> means any natural or legal person who processes the data on behalf of
-          the Company.
-        </li>
-        <li><strong>Third-party Social Media Service</strong> refers to any website or any social network website
-          through which a User can log in or create an account to use the Service.
-        </li>
-        <li><strong>Usage Data</strong> refers to data collected automatically, either generated by the use of the
-          Service or from the Service infrastructure itself.
-        </li>
-        <li><strong>Website</strong> refers to ideas-in-graveyard, accessible from https://ideas-in-graveyard.space</li>
-        <li><strong>You</strong> means the individual accessing or using the Service, or the company, or other
-          legal entity on behalf of which such individual is accessing or using the Service, as applicable.
-        </li>
-      </ul>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Collecting and Using Your Personal Data</h2>
+                <h3 className="text-xl font-medium mt-4 mb-2">Types of Data Collected</h3>
+                <h4 className="text-lg font-medium mt-3 mb-2">Personal Data</h4>
+                <p className="mb-3">
+                  While using Our Service, We may ask You to provide Us with certain personally identifiable information that
+                  can be used to contact or identify You. Personally identifiable information may include, but is not limited to:
+                </p>
+                <ul className="list-disc pl-6 my-3">
+                  <li>Email address</li>
+                  <li>Usage Data</li>
+                </ul>
+              </section>
 
-      <h2>Collecting and Using Your Personal Data</h2>
-      <h3>Types of Data Collected</h3>
-      <h4>Personal Data</h4>
-      <p>
-        While using Our Service, We may ask You to provide Us with certain personally identifiable information that
-        can be used to contact or identify You. Personally identifiable information may include, but is not limited to:
-      </p>
-      <ul>
-        <li>Email address</li>
-        <li>Usage Data</li>
-      </ul>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Use of Your Personal Data</h2>
+                <p>
+                  We may use Your Personal Data for:
+                </p>
+                <ul className="list-disc pl-6 my-3">
+                  <li>Providing and maintaining our Service.</li>
+                  <li>Managing Your Account.</li>
+                  <li>Performance of a contract.</li>
+                  <li>Contacting You with updates and information.</li>
+                  <li>Providing news, special offers, and general information.</li>
+                  <li>Managing Your requests.</li>
+                  <li>Business transfers (e.g., mergers or asset sales).</li>
+                  <li>Other purposes like data analysis and improving our Service.</li>
+                </ul>
+              </section>
 
-      <h4>Usage Data</h4>
-      <p>
-        Usage Data is collected automatically when using the Service. It may include Your Device's IP address,
-        browser type and version, the pages of our Service that You visit, the time and date of Your visit,
-        time spent on those pages, unique device identifiers and other diagnostic data.
-      </p>
-      <p>
-        When You access the Service via a mobile device, We may collect certain information automatically,
-        including but not limited to, the type of mobile device You use, Your mobile device unique ID, the IP
-        address of Your mobile device, Your mobile operating system, and other diagnostic data.
-      </p>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Sharing Your Personal Data</h2>
+                <p>
+                  We may share Your information with:
+                </p>
+                <ul className="list-disc pl-6 my-3">
+                  <li>Service Providers, to facilitate and improve our Service.</li>
+                  <li>Affiliates and business partners, under privacy obligations.</li>
+                  <li>Other users, if You interact publicly or via social features.</li>
+                  <li>Successors in business transfers.</li>
+                  <li>With Your consent.</li>
+                </ul>
+              </section>
 
-      <h4>Information from Third-Party Social Media Services</h4>
-      <p>
-        The Company allows You to create an account and log in through the following Third-party Social Media
-        Services:
-      </p>
-      <ul>
-        <li>Google</li>
-        <li>Facebook</li>
-        <li>Instagram</li>
-        <li>Twitter</li>
-        <li>LinkedIn</li>
-      </ul>
-      <p>
-        If You register or grant us access, We may collect Personal Data associated with that account, such as
-        Your name, email address, activities, or contact list.
-      </p>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Retention of Your Personal Data</h2>
+                <p>
+                  We retain Personal Data only as long as necessary for the purposes outlined and to comply with legal
+                  obligations.
+                </p>
+              </section>
 
-      <h4>Tracking Technologies and Cookies</h4>
-      <p>
-        We use Cookies and similar tracking technologies (beacons, tags, and scripts) to track activity on Our
-        Service and store information. Cookies may be "Persistent" or "Session" Cookies:
-      </p>
-      <ul>
-        <li><strong>Session Cookies</strong> are deleted once You close Your browser.</li>
-        <li><strong>Persistent Cookies</strong> remain on Your device until they expire or You delete them.</li>
-      </ul>
-      <p>
-        We use both types for:
-      </p>
-      <ul>
-        <li>
-          <strong>Necessary / Essential Cookies</strong> (Session) – to authenticate users and provide requested
-          services.
-        </li>
-        <li>
-          <strong>Cookies Policy / Notice Acceptance</strong> (Persistent) – to remember if You accepted the use
-          of cookies.
-        </li>
-        <li>
-          <strong>Functionality Cookies</strong> (Persistent) – to remember Your preferences and provide a
-          personalized experience.
-        </li>
-      </ul>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Transfer of Your Personal Data</h2>
+                <p>
+                  Data may be processed in locations outside Your jurisdiction. We take reasonable measures to ensure data
+                  is treated securely and in accordance with this Policy.
+                </p>
+              </section>
 
-      <h2>Use of Your Personal Data</h2>
-      <p>
-        We may use Your Personal Data for:
-      </p>
-      <ul>
-        <li>Providing and maintaining our Service.</li>
-        <li>Managing Your Account.</li>
-        <li>Performance of a contract.</li>
-        <li>Contacting You with updates and information.</li>
-        <li>Providing news, special offers, and general information.</li>
-        <li>Managing Your requests.</li>
-        <li>Business transfers (e.g., mergers or asset sales).</li>
-        <li>Other purposes like data analysis and improving our Service.</li>
-      </ul>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Delete Your Personal Data</h2>
+                <p>
+                  You have the right to delete or request deletion of Your Personal Data. You can manage Your data via
+                  account settings or by contacting us.
+                </p>
+              </section>
 
-      <h2>Sharing Your Personal Data</h2>
-      <p>
-        We may share Your information with:
-      </p>
-      <ul>
-        <li>Service Providers, to facilitate and improve our Service.</li>
-        <li>Affiliates and business partners, under privacy obligations.</li>
-        <li>Other users, if You interact publicly or via social features.</li>
-        <li>Successors in business transfers.</li>
-        <li>With Your consent.</li>
-      </ul>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Disclosure of Your Personal Data</h2>
+                <h3 className="text-xl font-medium mt-4 mb-2">Business Transactions</h3>
+                <p>
+                  In the event of a merger or sale, Your data may be transferred. We will notify You before any transfer.
+                </p>
+              </section>
 
-      <h2>Retention of Your Personal Data</h2>
-      <p>
-        We retain Personal Data only as long as necessary for the purposes outlined and to comply with legal
-        obligations.
-      </p>
+              <section className="mb-6">
+                <h3 className="text-xl font-medium mt-4 mb-2">Law Enforcement</h3>
+                <p>
+                  We may disclose Your data if required by law or valid requests from authorities.
+                </p>
+              </section>
 
-      <h2>Transfer of Your Personal Data</h2>
-      <p>
-        Data may be processed in locations outside Your jurisdiction. We take reasonable measures to ensure data
-        is treated securely and in accordance with this Policy.
-      </p>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Security of Your Personal Data</h2>
+                <p>
+                  We use commercially acceptable means to protect Your Personal Data, but cannot guarantee absolute
+                  security.
+                </p>
+              </section>
 
-      <h2>Delete Your Personal Data</h2>
-      <p>
-        You have the right to delete or request deletion of Your Personal Data. You can manage Your data via
-        account settings or by contacting us.
-      </p>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Children's Privacy</h2>
+                <p>
+                  Our Service does not address anyone under 13. We do not knowingly collect data from children under 13.
+                </p>
+              </section>
 
-      <h2>Disclosure of Your Personal Data</h2>
-      <h3>Business Transactions</h3>
-      <p>
-        In the event of a merger or sale, Your data may be transferred. We will notify You before any transfer.
-      </p>
-      <h3>Law Enforcement</h3>
-      <p>
-        We may disclose Your data if required by law or valid requests from authorities.
-      </p>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Links to Other Websites</h2>
+                <p>
+                  Our Service may contain links to third-party sites. We are not responsible for their content or privacy
+                  practices. Please review their policies.
+                </p>
+              </section>
 
-      <h2>Security of Your Personal Data</h2>
-      <p>
-        We use commercially acceptable means to protect Your Personal Data, but cannot guarantee absolute
-        security.
-      </p>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Changes to this Privacy Policy</h2>
+                <p>
+                  We may update this Policy periodically. We will notify You by posting the new Policy on this page with
+                  an updated "Last updated" date.
+                </p>
+              </section>
 
-      <h2>Children's Privacy</h2>
-      <p>
-        Our Service does not address anyone under 13. We do not knowingly collect data from children under 13.
-      </p>
-
-      <h2>Links to Other Websites</h2>
-      <p>
-        Our Service may contain links to third-party sites. We are not responsible for their content or privacy
-        practices. Please review their policies.
-      </p>
-
-      <h2>Changes to this Privacy Policy</h2>
-      <p>
-        We may update this Policy periodically. We will notify You by posting the new Policy on this page with
-        an updated "Last updated" date.
-      </p>
-
-      <h2>Contact Us</h2>
-      <p>If you have any questions about this Privacy Policy, You can contact us:</p>
-      <ul>
-        <li>By email: <a href="mailto:mohityadav0330@gmail.com">mohityadav0330@gmail.com</a></li>
-      </ul>
-    </main>
+              <section className="mb-6">
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Contact Us</h2>
+                <p className="mt-2 mb-2">If you have any questions about this Privacy Policy, You can contact us:</p>
+                <ul className="list-disc pl-6">
+                  <li>By email: <a href="mailto:mohityadav0330@gmail.com" className="text-blue-600 hover:underline">mohityadav0330@gmail.com</a></li>
+                </ul>
+              </section>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
