@@ -30,7 +30,6 @@ const initialOptions = {
   clientId: CLIENT_ID!,
   currency: "USD",
   "enable-funding": "venmo",
-  "buyer-country": "US",
   components: "buttons",
 };
 
