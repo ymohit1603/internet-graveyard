@@ -8,7 +8,7 @@ interface TwitterProfile {
 }
 
 // const API_URL = 'http://localhost:3000/api';
-const API_URL = env.API_URL;
+const API_URL = 'http://localhost:8787/api';
 
 export async function getTwitterProfile(username: string): Promise<TwitterProfile> {
   console.log(API_URL,"API_URL");
@@ -44,7 +44,7 @@ export async function getTwitterProfile(username: string): Promise<TwitterProfil
     const data = await response.json();
     console.log('[getTwitterProfile] ✅ JSON data:', data);
 
-    return data as TwitterProfile;
+    return data ;
   } catch (error) {
     console.error('[getTwitterProfile] ❌ Exception occurred:', error);
     throw error;

@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import { initPaddle } from "@/lib/paddle";
 import TermsOfService from "./pages/TOC";
 import RefundPolicy from "./pages/RefundPolicy";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -14,10 +13,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 const queryClient = new QueryClient();
 
 const App = () => {
-  useEffect(() => {
-    // Initialize Paddle when the app loads
-    initPaddle();
-  }, []);
+  
 
   return (
     <QueryClientProvider client={queryClient}>

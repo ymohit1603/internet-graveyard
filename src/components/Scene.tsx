@@ -61,7 +61,7 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
   const scene = useMemo(() => originalScene.clone(true), [originalScene]);
   
   // Load avatar texture with error handling
-  const avatarUrl = tombstone.avatar_url || '/placeholder-avatar.png';
+  const avatarUrl = tombstone.avatar_url || '/default-avatar.png';
   const avatarTexture = useTexture(avatarUrl);
   
   // Use a simpler approach with useEffect

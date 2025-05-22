@@ -4,8 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { getTwitterProfile } from '@/lib/twitter';
-import { openPaddleCheckout, type TombstonePaymentData } from '@/lib/paddle';
-import { createTombstone } from '@/lib/supabase';
+import PayPalModal from './PayPalModal';
 
 interface LoadingStates {
   profileFetch: boolean;
@@ -39,13 +38,21 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
     promo_url: '',
     email: ''
   });
+
   const [loadingStates, setLoadingStates] = useState<LoadingStates>({
     profileFetch: false,
     payment: false,
     databaseUpdate: false
   });
+
   const [paymentStep, setPaymentStep] = useState<'form' | 'processing'>('form');
+  const [paypalReady, setPaypalReady] = useState(false);
+  const [showPayPalModal, setShowPayPalModal] = useState(false);
+
   const isLoading = Object.values(loadingStates).some(Boolean);
+
+  // Helper to check if form is valid
+  const isFormValid = formData.twitter_handle && formData.title && formData.description && formData.email;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -58,11 +65,12 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
       const handle = formData.twitter_handle.replace('@', '');
       const profile = await getTwitterProfile(handle);
       if (profile) {
+        console.log(profile.data,"profile");
         setFormData(s => ({
           ...s,
-          twitter_handle: profile.username,
-          username: profile.name,
-          avatar_url: profile.avatar_url
+          twitter_handle: profile.data.username,
+          username: profile.data.name,
+          avatar_url: profile.data.profile_image_url
         }));
         toast.success('Profile found!', { description: 'Auto-filled from Twitter.' });
       } else {
@@ -78,73 +86,33 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
-    // Basic validation…
-    if (!formData.twitter_handle || !formData.title || !formData.description || !formData.email) {
-      return toast.error('All required fields must be filled.');
-    }
-    setLoadingStates(s => ({ ...s, payment: true }));
-    setPaymentStep('processing');
+    // if (!formData.twitter_handle || !formData.title || !formData.description || !formData.email) {
+    //   return toast.error('All required fields must be filled.');
+    // }
+    // Optionally, you can do more validation or save the form data here
+    setShowPayPalModal(true);
+  };
 
-    const paymentData: TombstonePaymentData = {
-      title: formData.title,
-      twitter_handle: formData.twitter_handle,
-      description: formData.description,
-      promo_url: formData.promo_url,
-      email: formData.email
-    };
-
-    try {
-      await openPaddleCheckout({
-        paymentData,
-        successCallback: async (transactionId) => {
-          setLoadingStates(s => ({ ...s, databaseUpdate: true }));
-          try {
-            const tombstoneData = {
-              ...formData,
-              ...position,
-              transaction_id: transactionId,
-              payment_status: 'completed' as const
-            };
-            const newTombstone = await createTombstone(tombstoneData);
-            if (!newTombstone) throw new Error('DB insert failed');
-            onSubmit({ ...formData, ...position });
-            toast.success('Success!', { description: 'Your memorial is live.' });
-            onClose();
-          } catch (err: any) {
-            toast.error('Saving failed', { description: err.message });
-          } finally {
-            setLoadingStates(s => ({ ...s, databaseUpdate: false }));
-          }
-        },
-        errorCallback: (err) => {
-          toast.error('Payment failed', { description: err.message });
-          setPaymentStep('form');
-          setLoadingStates(s => ({ ...s, payment: false }));
-        },
-        closeCallback: () => {
-          setPaymentStep('form');
-          setLoadingStates(s => ({ ...s, payment: false }));
-        }
-      });
-    } catch {
-      toast.error('Payment init failed', { description: 'Try again later.' });
-      setPaymentStep('form');
-      setLoadingStates(s => ({ ...s, payment: false }));
-    }
+  const handlePaymentSuccess = () => {
+    toast.success('Memorial created successfully!');
+    // Close the modal and pass complete data to parent component
+    onSubmit({
+      ...formData,
+      x: position.x,
+      y: position.y,
+      z: position.z
+    });
+    setShowPayPalModal(false);
+    onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+      <div className="relative w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-serif font-bold text-gray-900">
-              Plant Your Memorial
-            </h2>
-            
-          </div>
+          <h2 className="text-2xl font-serif font-bold text-gray-900">Plant Your Memorial</h2>
           <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-gray-600">
             &times;
           </Button>
@@ -158,7 +126,6 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
-            {/** Twitter Handle **/}
             <div>
               <label className="block text-sm font-medium text-gray-700">Twitter Handle</label>
               <Input
@@ -172,8 +139,6 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 required
               />
             </div>
-
-            {/** Email **/}
             <div>
               <label className="block text-sm font-medium text-gray-700">Email Address</label>
               <Input
@@ -187,8 +152,6 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 required
               />
             </div>
-
-            {/** Title **/}
             <div>
               <label className="block text-sm font-medium text-gray-700">Name of the Idea</label>
               <Input
@@ -204,8 +167,6 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 {formData.title.length}/30
               </p>
             </div>
-
-            {/** Description **/}
             <div>
               <label className="block text-sm font-medium text-gray-700">About the Idea</label>
               <Textarea
@@ -221,8 +182,6 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 {formData.description.length}/140
               </p>
             </div>
-
-            {/** Promo URL (optional) **/}
             <div>
               <label className="block text-sm font-medium text-gray-700">Promotion URL (optional)</label>
               <Input
@@ -234,18 +193,28 @@ export const TombstoneForm = ({ position, onClose, onSubmit }: TombstoneFormProp
                 type="url"
               />
             </div>
-
-            {/** Submit **/}
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow"
-            >
-              {isLoading ? 'Submitting…' : 'Pay $9.99 '}
+            <Button type="submit" className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow">
+              Submit
             </Button>
           </form>
         )}
       </div>
+      <PayPalModal 
+        open={showPayPalModal} 
+        onClose={() => setShowPayPalModal(false)} 
+        formData={{
+          twitter_handle: formData.twitter_handle,
+          username: formData.username || formData.twitter_handle,
+          avatar_url: formData.avatar_url || '',
+          title: formData.title,
+          description: formData.description,
+          promo_url: formData.promo_url,
+          x: position.x,
+          y: position.y,
+          z: position.z
+        }}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

@@ -2,51 +2,96 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ideas in Graveyard • Rediscover & Revive Your Shelved Ideas</title>
-  <meta name="description" content="Ideas in Graveyard helps you store, organize, and breathe new life into your forgotten ideas. Capture sparks of creativity and turn them into actionable projects." />
-  <meta name="author" content="Ideas in Graveyard Team" />
-  <meta name="keywords" content="idea management, revive ideas, creative backlog, brainstorm tool, idea organizer" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ideas in Graveyard • Rediscover & Revive Your Shelved Ideas</title>
+    <meta
+      name="description"
+      content="Ideas in Graveyard helps you store, organize, and breathe new life into your forgotten ideas. Capture sparks of creativity and turn them into actionable projects."
+    />
+    <meta name="author" content="Ideas in Graveyard Team" />
+    <meta
+      name="keywords"
+      content="idea management, revive ideas, creative backlog, brainstorm tool, idea organizer"
+    />
 
-  <!-- Canonical URL -->
-  <!-- <link rel="canonical" href="https://yourdomain.com/ideas-in-graveyard" /> -->
+    <!-- Canonical URL -->
+    <link
+      rel="canonical"
+      href="https://yourdomain.com/ideas-in-graveyard"
+    />
 
-  <!-- Open Graph for Social Sharing -->
-  <meta property="og:title" content="Ideas in Graveyard • Rediscover & Revive Your Shelved Ideas" />
-  <meta property="og:description" content="Capture every spark, never lose a thought. Ideas in Graveyard is your digital vault for creativity and project planning." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://yourdomain.com/ideas-in-graveyard" />
-  <meta property="og:image" content="https://yourdomain.com/opengraph-image-ideas.png" />
+    <!-- Open Graph for Social Sharing -->
+    <meta
+      property="og:title"
+      content="Ideas in Graveyard • Rediscover & Revive Your Shelved Ideas"
+    />
+    <meta
+      property="og:description"
+      content="Capture every spark, never lose a thought. Ideas in Graveyard is your digital vault for creativity and project planning."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://yourdomain.com/ideas-in-graveyard" />
+    <meta
+      property="og:image"
+      content="https://yourdomain.com/opengraph-image-ideas.png"
+    />
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:site" content="@your_twitter_handle" />
-  <meta name="twitter:title" content="Ideas in Graveyard • Rediscover & Revive Your Shelved Ideas" />
-  <meta name="twitter:description" content="Never let good ideas die. Store, organize, and bring them back to life with Ideas in Graveyard." />
-  <meta name="twitter:image" content="https://yourdomain.com/opengraph-image-ideas.png" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@your_twitter_handle" />
+    <meta
+      name="twitter:title"
+      content="Ideas in Graveyard • Rediscover & Revive Your Shelved Ideas"
+    />
+    <meta
+      name="twitter:description"
+      content="Never let good ideas die. Store, organize, and bring them back to life with Ideas in Graveyard."
+    />
+    <meta
+      name="twitter:image"
+      content="https://yourdomain.com/opengraph-image-ideas.png"
+    />
 
-  <!-- Structured Data (JSON-LD) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Ideas in Graveyard",
-    "description": "Ideas in Graveyard helps you store, organize, and breathe new life into your forgotten ideas.",
-    "url": "https://yourdomain.com/ideas-in-graveyard",
-    "publisher": {
-      "@type": "Organization",
-      "name": "Ideas in Graveyard",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://yourdomain.com/logo.png"
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Ideas in Graveyard",
+        "description":
+          "Ideas in Graveyard helps you store, organize, and breathe new life into your forgotten ideas.",
+        "url": "https://yourdomain.com/ideas-in-graveyard",
+        "publisher": {
+          "@type": "Organization",
+          "name": "Ideas in Graveyard",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://yourdomain.com/logo.png"
+          }
+        }
       }
-    }
-  }
-  </script>
+    </script>
+    
+    <!-- PayPal SDK - Load in head with better error handling -->
+    <script>
+      // Track PayPal loading status
+      window.paypalLoaded = false;
+      
+      function onPayPalLoad() {
+        window.paypalLoaded = true;
+        console.log("PayPal SDK loaded successfully");
+      }
+      
+      function onPayPalError(err) {
+        console.error("PayPal SDK failed to load:", err);
+      }
+    </script>
   </head>
 
   <body>
+    <!-- Root for React app -->
     <div id="root"></div>
+
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
