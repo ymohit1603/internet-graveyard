@@ -1,19 +1,14 @@
 import { env } from '@/env';
 
-interface TwitterProfile {
-  username: string;
-  name: string;
-  avatar_url: string;
-  description: string;
-}
+
 
 // const API_URL = 'http://localhost:3000/api';
-const API_URL = 'http://localhost:8787/api';
+const API_URL = 'https://twitter-api-worker.mohityadav0330.workers.dev';
 
-export async function getTwitterProfile(username: string): Promise<TwitterProfile> {
+export async function getTwitterProfile(username: string){
   console.log(API_URL,"API_URL");
   console.log(username,"username");
-  const url = `${API_URL}/social/profile/${username}`;
+  const url = `${API_URL}/api/social/profile/${username}`;
   console.log('[getTwitterProfile] Fetching from:', url);
 
   try {
