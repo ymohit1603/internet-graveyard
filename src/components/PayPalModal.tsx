@@ -23,7 +23,7 @@ interface PayPalModalProps {
 }
 
 const CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID;
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8787";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8787";
 
 const initialOptions = {
   "client-id": CLIENT_ID!,
