@@ -65,9 +65,7 @@ function TombstoneGLB({ x = 0, y = 0, z = 0, onClick, tombstone }) {
   const avatarTexture = useTexture(avatarUrl);
   
   // Use a simpler approach with useEffect
-  useEffect(() => {
-    console.log("Avatar URL:", avatarUrl);
-  }, [avatarUrl]);
+ 
 
   // Texture load effect
   useFrame(() => {
@@ -318,10 +316,7 @@ const SceneContent = ({ tombstones, onRightClick, onTombstoneClick, isDarkMode }
   const isMobile = useIsMobile();
   const [isPlacing, setIsPlacing] = useState(false);
   
-  // Debug logging
-  useEffect(() => {
-    console.log('Tombstones in SceneContent:', tombstones);
-  }, [tombstones]);
+
   
   // Create raycaster and mouse outside of render to avoid rerenders
   const raycaster = useMemo(() => new Raycaster(), []);
